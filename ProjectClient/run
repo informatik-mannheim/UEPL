@@ -1,0 +1,2 @@
+#!/bin/bash
+dotnet exec bin/Debug/netcoreapp1.1/ProjectClient.dll

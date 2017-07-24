@@ -1,0 +1,13 @@
+diff --git a/ProjectAPI/wwwroot/app/app.js b/ProjectAPI/wwwroot/app/app.js
+index 0e92211..d32e89a 100644
+--- a/ProjectAPI/wwwroot/app/app.js
++++ b/ProjectAPI/wwwroot/app/app.js
+@@ -42,5 +42,5 @@ app.config(["$routeProvider", "$locationProvider", "$resourceProvider", function
+ 
+ app.constant("Config",
+ {
+-    API: "http://localhost:10000/api/"
+-});
+\ No newline at end of file
++    API: "http://elke.sr.hs-mannheim.de:10000/api/"
++});

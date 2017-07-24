@@ -1,0 +1,78 @@
+﻿<div ng-controller="artifactDetailController">
+    <div ng-if="package != null">
+        <div class="panel panel-default">
+            <div class="panel-heading">Package: {{package.name}} ({{package.id}})</div>
+            <div class="panel-body">
+                <table class="table table-striped table-bordered table-responsive">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>InstallAction</th>
+                            <th>RemoveAction</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="artifact in artifacts" ng-click="clicked(artifact)">
+                            <td>{{artifact.id}}</td>
+                            <td>{{artifact.installAction}}</td>
+                            <td>{{artifact.removeAction}}</td>
+                            <td><a ng-href="{{artifact.url}}">{{artifact.url}}</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div ng-if="package == null">
+        <div class="panel panel-default">
+            <div class="panel-heading">List Artifacts</div>
+            <div class="panel-body">
+                <table class="table table-striped table-bordered table-responsive">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>InstallAction</th>
+                            <th>RemoveAction</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="artifact in artifacts" ng-click="clicked(artifact)">
+                            <td>{{artifact.id}}</td>
+                            <td>{{artifact.installAction}}</td>
+                            <td>{{artifact.removeAction}}</td>
+                            <td><a ng-href="{{artifact.url}}">{{artifact.url}}</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="ArtifactCreator">
+        <div class="panel panel-default">
+            <div class="panel-heading">Create Artifact</div>
+            <div class="panel-body">
+                <form>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-cog"></i></span>
+                        <input ng-model="nArtifact.id" class="form-control" type="text" placeholder="Artifact ID" required />
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-plus"></i></span>
+                        <input ng-model="nArtifact.installAction" class="form-control" type="text" placeholder="Install Command" required />
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-minus"></i></span>
+                        <input ng-model="nArtifact.removeAction" class="form-control" type="text" placeholder="Remove Command" required />
+                    </div>
+                </form>
+            </div>
+            <div class="panel-footer text-center">
+                <button class="btn btn-success" ng-click="create(nArtifact)">Create</button>
+                <button class="btn btn-danger" ng-click="clear()">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>

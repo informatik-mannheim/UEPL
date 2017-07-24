@@ -1,0 +1,47 @@
+﻿<div ng-controller="lectureController">
+    <div class="panel panel-default">
+        <div class="panel-heading">List Lectures</div>
+        <div class="panel-body">
+            <table class="table table-striped table-hover table-bordered table-responsive">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>URL</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="lecture in lectures">
+                        <td>{{lecture.id}}</td>
+                        <td>{{lecture.name}}</td>
+                        <td><a ng-href="{{lecture.url}}">{{lecture.url}}</a></td>
+                        <td><span class="glyphicon glyphicon-edit" aria-hidden="true" ng-click="edit(lecture)"></span>&nbsp;|&nbsp;<span class="glyphicon glyphicon-remove" aria-hidden="true" ng-click="remove(lecture)"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <br />
+    <div class="panel panel-default">
+        <div class="panel-heading">Create Lecture</div>
+        <div class="panel-body">
+            <form>
+                <div class="text-center">
+                    <div class="input-group">
+                        <span class="input-group-addon" id="nlecture-id">Short</span>
+                        <input type="text" class="form-control" ng-model="nLecture.id" placeholder="Short" aria-describedby="nlecture-id" />
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon" id="nlecture-name">Name</span>
+                        <input type="text" class="form-control" ng-model="nLecture.name" placeholder="Long Name" aria-describedby="nlecture-name" />
+                    </div>
+                </div>
+                    
+            </form>
+        </div>
+        <div class="panel-footer text-center">
+            <button class="btn btn-success" ng-click="create()">Create</button>
+        </div>
+    </div>
+</div>
