@@ -1,0 +1,128 @@
+/*!
+ * IE10 viewport hack for Surface/desktop Windows 8 bug
+ * Copyright 2014-2015 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ */
+@-ms-viewport     { width: device-width; }
+@-o-viewport      { width: device-width; }
+@viewport         { width: device-width; }
+
+/*
+CORE CSS
+*/
+a 
+{
+    cursor: pointer;
+}
+
+.input-group+.input-group {
+    margin-top: 5px;
+}
+
+table 
+{
+    margin-bottom: 0!important;
+    zoom: 1.25;
+}
+
+table th, table td 
+{
+    margin: auto;
+    text-align: center;
+}
+
+.flex-panel
+{
+    display: -webkit-flex;
+    display: flex;
+    flex-flow: -webkit-wrap;
+    flex-flow: wrap;
+    padding-top: 20px;
+    padding-bottom: 0px;
+}
+
+.iflex
+{
+    display: inline-flex;
+}
+
+.thumbnail
+{
+    width: 100%;
+    user-select: none;
+}
+
+.thumbnail.selectable
+{
+    cursor: pointer;
+}
+
+.iflex > .thumbnail > .caption
+{
+    overflow: auto;
+    max-height: 250px;
+    word-wrap: break-word;
+}
+
+.iflex > .thumbnail > .caption > h3
+{
+    margin-top: 0;
+}
+
+.float-icon-right
+{
+    float: right;
+    position: relative;
+    top: 0;
+}
+
+.glyphicon 
+{
+    cursor: pointer;
+}
+
+.user-right 
+{
+    display: block !important;
+    position: fixed;
+    right: 1vw;
+    height: 50px;
+}
+
+.user-right i 
+{
+    font-size: xx-large;
+}
+
+.dropdown-right 
+{
+    left: auto !important;
+    right: 1vw;
+}
+
+/* Toast Notifications */
+
+.notification 
+{
+    background: #1349dd !important;
+    color: antiquewhite !important;
+    font-size: xx-large;
+}
+
+/* Widescreen Support */
+
+@media only screen and (min-width : 1224px) 
+{
+    .form-signin
+    {
+        zoom: 2;
+    }
+}
+
+@media only screen and (min-width : 768px) and (max-width : 1223px)
+{
+    .form-signin
+    {
+        zoom: 1.5;
+    }
+}

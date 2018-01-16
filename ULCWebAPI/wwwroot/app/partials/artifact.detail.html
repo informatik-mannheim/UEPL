@@ -1,0 +1,110 @@
+﻿<style>
+    * 
+    {
+        font-variant-ligatures: no-common-ligatures;
+    }
+
+    @media (min-width: 900px)
+    {
+        pre { min-height: 25vh; }
+    }
+
+    @media (max-width: 900px)
+    {
+        pre { min-height: 50vh; }        
+    }
+
+    a:hover
+    {
+        text-decoration: none;
+    }
+
+    .icon-delete
+    {
+        color: red;
+    }
+
+    .icon-delete:hover
+    {
+        color: darkred;
+    }
+
+    #files
+    {
+        float: left;
+        max-width: 50vw;
+    }
+
+    #upload
+    {
+        float: right;
+        max-width: 50vw;
+    }
+
+</style>
+<div ng-controller="artifactDetailController">
+    <div class="panel panel-default">
+        <div class="panel-heading">Artifact: {{artifact.id}}</div>
+        <div class="panel-body">
+            <div class ="col-lg-6">
+                <p>Install Action</p>
+                <pre id="ia_editor" ng-model="artifact.installAction"></pre>
+            </div>
+            <div class ="col-lg-6">
+                <p>Remove Action</p>
+                <pre id="ra_editor" ng-model="artifact.removeAction"></pre>
+            </div>
+            <div class ="col-lg-6">
+                <p>Switch Action</p>
+                <pre id="sa_editor" ng-model="artifact.switchAction"></pre>
+            </div>
+            <div class ="col-lg-6">
+                <p>Unswitch Action</p>
+                <pre id="ua_editor" ng-model="artifact.unswitchAction"></pre>
+            </div>
+        </div>
+        <div class="panel-footer text-center">
+            <button class="btn btn-success" ng-click="save()">Save Changes</button>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">Artifact Storage (Files)</div>
+        <div class="panel-body flex-panel">
+            <div ng-repeat="storageFile in artifact.storage.files" class="col-lg-3 col-md-4 col-sm-6 col-xs-12 iflex">
+                <div class="thumbnail">
+                    <span class="float-icon-right" ng-click="removeStorageFile(storageFile)">&nbsp;<i class="fa fa-lg fa-minus-circle icon-delete"></i></span>
+                    <span class="float-icon-right"><a ng-href="{{storageFile.url}}" class="fa fa-lg fa-download"></a></span>
+                    <div class="caption">
+                        <h3>{{storageFile.filename}}</h3>
+                    </div>
+                </div>
+                <!--<p>{{storageFile.url}}</p>-->
+            </div>
+        </div>
+        <div class="panel-footer text-center">
+            <form method="post" enctype="multipart/form-data" style="min-height: 34px">
+                <input type="file" id="files" name="files" multiple class="btn form-control" />
+                <input type="button" id="upload" class="btn btn-default" ng-click="uploadFiles()" value="Upload Selected Files" />
+                <br/>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        var editors = {};
+        editors.ia = ace.edit("ia_editor");
+        editors.ra = ace.edit("ra_editor");
+        editors.sa = ace.edit("sa_editor");
+        editors.ua = ace.edit("ua_editor");
+
+        for(var key in editors)
+        {
+            if(!editors.hasOwnProperty(key)) continue;
+
+            editors[key].setTheme("ace/theme/monokai");
+            editors[key].getSession().setMode("ace/mode/sh");
+            editors[key].setShowPrintMargin(false);
+            editors[key].$blockScrolling = Infinity;
+        }
+    </script>
+</div>

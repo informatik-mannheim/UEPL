@@ -1,0 +1,26 @@
+﻿<div ng-controller="artifactUploadController">
+    <div ng-if="artifact != null">
+        <h2>Artifact: {{artifact.id}}</h2>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">List File in Artifact</div>
+        <div class="panel-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>File</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="storageItem in storage" ng-click="clicked(storageItem)">
+                        <td>{{storageItem.id}}</td>
+                        <td>{{storageItem.name}}</td>
+                        <td><a ng-href="{{artifact.url}}"><i class="glyphicon glyphicon-download"></i></a> | <a ng-click="remove(storageItem)"><i class="glyphicon glyphicon-remove"></i></a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

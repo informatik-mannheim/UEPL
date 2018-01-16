@@ -1,0 +1,80 @@
+﻿<style>
+    .thumbnail > p > img
+    {
+        height: 15vh;
+        width: 8vw;
+        margin: auto;
+        display: block;
+    }
+
+    .thumbnail i 
+    {
+        font-size: xx-large;
+    }
+</style>
+
+<div ng-controller="packageController">
+    <div class="panel panel-default">
+        <div class="panel-heading">List Packages</div>
+        <div class="panel-body">
+            <table class="table table-striped table-hover table-bordered table-responsive">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Artifact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="package in packages">
+                        <td>{{package.id}}</td>
+                        <td>{{package.name}}</td>
+                        <td>{{package.artifactRefID}}</td>
+                        <td><span class="glyphicon glyphicon-edit" aria-hidden="true" ng-click="edit(package)"></span>&nbsp;|&nbsp;<span class="glyphicon glyphicon-remove" aria-hidden="true" ng-click="remove(package)"></span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="PackageCreator">
+        <div class="panel panel-default">
+            <div class="panel-heading">Create Package</div>
+            <div class="panel-body">
+                <form>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-cog"></i></span>
+                        <input ng-model="nPackage.name" class="form-control" type="text" placeholder="Package Name" required />
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-arrow-right"></i></span>
+                        <select class="form-control" ng-model="nPackage.artifactRefID" ng-options="artifact as artifact.id for artifact in artifacts">
+                            <option value="" disabled>-- choose artifact --</option>
+                        </select>
+                    </div>
+                </form>
+                <h3>Dependencies</h3>
+                <div id="dependencies" class="flex-panel">     
+                    <div ng-repeat="package in packages" class="col-xs-6 col-sm-6 col-md-4 col-lg-2 iflex">
+                        <div class="thumbnail" ng-click="clickDep(package)">
+                            <span class="float-icon-right"><i class="fa fa-lg" ng-class="package.selected ? 'fa-check-circle-o' : 'fa-circle-o'"></i></span>
+                            <p>
+                                <br/>
+                                <img fallback-src="{{fallbackImage}}" ng-src="{{package.image}}" />
+                            </p>
+                            <div class="caption">
+                                <h3>{{package.name}}</h3>
+                                <p>{{package.description}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer text-center">
+                <button class="btn btn-success" ng-click="create(nPackage)">Create</button>
+                <button class="btn btn-danger" ng-click="clear()">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,0 @@
-unlink Program.cs && unlink Config.cs && unlink config.ini && unlink ProjectClient.csproj && unlink Context.cs 
-ln -s ~/projects_host/ProjectAPI/ProjectClient/*.cs ~/Projects/ProjectAPI/ProjectClient/
-ln -s ~/projects_host/ProjectAPI/ProjectClient/config.ini ~/Projects/ProjectAPI/ProjectClient/config.ini
-ln -s ~/projects_host/ProjectAPI/ProjectClient/ProjectClient.csproj ~/Projects/ProjectAPI/ProjectClient/ProjectClient.csproj
-dotnet build

@@ -1,0 +1,5 @@
+unlink Program.cs && unlink Config.cs && unlink config.ini && unlink ULCService.csproj && unlink Context.cs 
+ln -s ~/projects_host/ULC/ULCService/*.cs					~/Projects/ULC/ULCService/
+ln -s ~/projects_host/ULC/ULCService/config.ini				~/Projects/ULC/ULCService/config.ini
+ln -s ~/projects_host/ULC/ULCService/ULCService.csproj	~/Projects/ULC/ULCService/ULCService.csproj
+dotnet build

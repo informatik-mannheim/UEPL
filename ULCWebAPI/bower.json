@@ -1,0 +1,20 @@
+{
+  "name": "ULCWebAPI-Frontend",
+  "private": true,
+  "dependencies": {
+    "jquery": "3.2.1",
+    "bootstrap": "^3.3.7",
+    "angular": "v1.6.5-build.5353+sha.136a42a",
+    "angular-route": "v1.6.5-build.5353+sha.136a42a",
+    "angular-resource": "v1.6.5-build.5353+sha.136a42a",
+    "angular-sanitize": "v1.6.5-build.5353+sha.136a42a",
+    "angular-animate": "v1.6.5-build.5353+sha.136a42a",
+    "angular-bootstrap": "v1.1.0",
+    "ngToast": "ngtoast#^2.0.0"
+  },
+  "resolutions": {
+    "jquery": "3.2.1",
+    "angular": "1.6.5-build.5353+sha.136a42a",
+    "angular-sanitize": "v1.6.5-build.5353+sha.136a42a"
+  }
+}

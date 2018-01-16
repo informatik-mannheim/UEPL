@@ -1,0 +1,47 @@
+﻿<style>
+    @media (max-width: 768)
+    {
+        div.panel
+        {
+            height: 85vh;
+        }
+    }
+
+    .thumbnail > p > img
+    {
+        height: 20vh;
+        width: 10vw;
+        margin: auto;
+        display: block;
+    }
+
+    i 
+    {
+        font-size: xx-large;
+    }
+</style>
+<div ng-controller="lectureDetailController">
+    <div class="panel panel-default">
+        <div class="panel-heading">Lecture: {{lecture.name}} ({{lecture.id}})</div>
+        <div class="panel-body flex-panel">
+            <div ng-repeat="package in packages" class="col-xs-6 col-sm-6 col-md-4 col-lg-2 iflex">
+                <div class="thumbnail" ng-click="clicked(package)">
+                    <span class="float-icon-right"><i class="fa fa-lg" ng-class="package.selected ? 'fa-check-circle-o' : 'fa-circle-o'"></i></span>
+                    <p>
+                        <br/>
+                        <img fallback-src="{{fallbackImage}}" ng-src="{{package.image}}" />
+                    </p>
+                    <div class="caption">
+                        <h4>{{package.name}}</h4>
+                        <h5>{{package.artifactRefID}}</h5>
+                        <p>{{package.description}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-footer text-center">
+            <button class="btn btn-success" ng-disabled="!dirty" ng-click="save()">Save</button>
+            <button class="btn btn-danger" ng-click="refresh()">Reset</button>
+        </div>
+    </div>
+</div>
