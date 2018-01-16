@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.0\ProjectAPI.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\ULCWebAPI.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DEMO|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.0\ProjectAPI.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.0\ULCWebAPI.xml</DocumentationFile>
     <DefineConstants>TRACE;DEMO;NETCOREAPP2_0</DefineConstants>
   </PropertyGroup>
 
