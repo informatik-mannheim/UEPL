@@ -2,10 +2,10 @@
 layout: default
 ---
 
-## Anleitung IT-Admin
+# Anleitung IT-Admin
 
 
-# [](#header-1)Artefakt erstellen
+## Artefakt erstellen
 Um ein Artefakt zu erstellen, öffnen Sie die ProjectAPI (ÜPL) und wählen Sie den Reiter Artefakt aus mit Ihrem Web Browser.
 In dieser Übersicht sind alle bisher erstellten Artefakte sichtbar. Bearbeitung und Löschung dieser ist durch die jeweiligen Button in der Spalte möglich.
 Im Unteren Bereich können Artefakte erstellt werden.
@@ -30,7 +30,7 @@ All diese Eintragungen können anschließend mit dem Button “Save” gespeiche
 
 Das Vorlesungsprofil wurde nun erstellt.
 
-# [](#header-1)Artefakt bearbeiten
+## Artefakt bearbeiten
 
 Um ein Artefakt zu bearbeiten, öffnen Sie die ProjectAPI (ÜPL) und wählen Sie den Reiter Artefakt aus mit Ihrem Web Browser. Nun sehen Sie eine Liste mit bereits erstellten Artefakten. Drücken Sie den “Paper&Pen”-Button um Änderungsoptionen zu erhalten. Der X-Button dient zur löschung des gesamten Artefakts.
 
@@ -65,7 +65,7 @@ Nun wurden alle änderungen, welche Sie in den Textfelder vollzogen haben und ev
 
 
 
-# [](#header-1)Package erstellen
+## Package erstellen
 
 Um ein Package zu erstellen, öffnen Sie die ProjectAPI (ÜPL) und wählen Sie den Reiter Package aus mit Ihrem Web Browser. Nun sehen Sie eine Liste mit bereits erstellten Packages. Scrollen sie nach unten bis Sie folgendes Bild sehen
 
@@ -81,7 +81,7 @@ Letztendlich muss der Button “Save” gedrückt werden.
 
 Das Package wurde erfolgreich erstellt.
 
-# [](#header-1)Paket bearbeiten
+## Paket bearbeiten
 
 Um ein Package zu erstellen, öffnen Sie die ProjectAPI (ÜPL) und wählen Sie den Reiter Package aus mit Ihrem Web Browser. Nun sehen Sie eine Liste mit bereits erstellten Packages. Drücke Sie den “Paper&Pen”-Button um Änderungsoptionen zu erhalten.
 Der X-Button dient zur löschung des gesamten Pakets.

@@ -2,10 +2,10 @@
 layout: default
 ---
 
-## Anleitung Dozent
+# Anleitung Dozenten / Professoren
 
 
-# [](#header-1)Vorlesungsprofil erstellen
+## Vorlesungsprofil erstellen
 Um ein Vorlesungsprofil (Lecture) zu erstellen, öffnen Sie die ProjectAPI (ÜPL) mit Ihrem Web Browser. Nun sehen Sie eine Liste mit bereits erstellten Vorlesungsprofilen.
 Unter dieser Liste haben Sie die Möglichkeit ein neues Profil zu erstellen. 
 Hierfür geben Sie in der Zeile Short den Kürzel und in der Zeile Name den vollständigen Namen der Vorlesung ein (Bsp. Short: GDI, Name: Grundlagen der Informatik). 
@@ -14,7 +14,7 @@ Klicken Sie anschließend auf create.
 ![](https://i.imgur.com/OBYzs6y.png)
 Das Vorlesungsprofil wurde nun erstellt.
 
-# [](#header-1)Programme (Packages)  hinzufügen
+## Programme (Packages)  hinzufügen
 
 Um dem erstellten Vorlesungsprofil ein Package hinzuzufügen, klicken Sie in der Liste der Vorlesungsprofile (List Lectures) in der Spalte Action auf folgenden Button.
 
@@ -26,7 +26,7 @@ Nun bekommen Sie alle möglichen Packages angezeigt, welche Sie dem Vorlesungspr
 
 Falls sich das gewünschte Package bzw. Programm nicht in der Auswahlliste befindet, kontaktieren Sie bitte hierzu den System-Admin.
 
-# [](#header-1)Vorlesungsprofil öffnen
+## Vorlesungsprofil öffnen
 
 Falls Sie MacOS oder Windows nutzen, müssen Sie eine virtuelle Linuxmaschine auf ihrem Rechner starten. Bitte öffnen Sie das Programm ÜPL Configuration.
 

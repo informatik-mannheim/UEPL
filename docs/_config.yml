@@ -1,15 +1,13 @@
-# Welcome to Jekyll!
-
 # Site settings
-title: UEPL Project
+title: UbiLearnCompanion (Project ÜPL)
 email: t.becht@hs-mannheim.de
 description: >- # this means to ignore newlines until "baseurl:"
  Hosting location for the project Überall Programmieren Lernen
 
 baseurl: "UEPL" # the subpath of your site, e.g. /blog
+show_downloads: true
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: jekyllrb
-github_username:  jekyll
+github_username:  informatik-mannheim
 
 # Build settings
 markdown: kramdown

@@ -2,10 +2,10 @@
 layout: default
 ---
 
-## Anleitung Student
+# Anleitung Student
 
 
-# [](#header-1)Vorlesungsprofil herunterladen & nutzen
+## Vorlesungsprofil herunterladen & nutzen
 Falls Sie MacOS oder Windows nutzen, müssen Sie eine virtuelle Maschine mit der Linuxdistribution Linux Mint auf ihrem Rechner starten. 
 
 Bitte öffnen Sie das Programm ÜPL Management. 
