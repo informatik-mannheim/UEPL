@@ -2,3 +2,17 @@
 ---
 
 @import "{{ site.theme }}";
+
+.inner
+{
+	max-width: 60vw !important;
+}
+
+@media screen and (max-width: 480px)
+{
+	.inner
+	{
+		min-width: 75vw;
+		max-width: 100vw;
+	}
+}
