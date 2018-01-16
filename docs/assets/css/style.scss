@@ -5,12 +5,23 @@
 
 .inner
 {
-	max-width: 60vw !important;
+	max-width: 60vw;
+}
+
+img
+{
+	max-width: 60vw;
 }
 
 @media screen and (max-width: 480px)
 {
 	.inner
+	{
+		min-width: 75vw;
+		max-width: 100vw;
+	}
+
+	img
 	{
 		min-width: 75vw;
 		max-width: 100vw;
