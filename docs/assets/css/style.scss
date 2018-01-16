@@ -8,9 +8,20 @@
 	max-width: 60vw;
 }
 
+p
+{
+	text-align: center;
+}
+
 img
 {
+	max-height: 80vh;
 	max-width: 60vw;
+}
+
+footer p
+{
+	text-align: left;
 }
 
 @media screen and (max-width: 480px)
