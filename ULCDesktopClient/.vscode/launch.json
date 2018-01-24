@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Main Process",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": "C:/Users/Tobias/AppData/Roaming/npm/electron.cmd",
+      "program": "${workspaceRoot}/main.js"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ULC Desktop</title>
+    <!--<script src="./bootstrap/js/bootstrap.min.js"></script>-->
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./css/global.css" />
+    <link rel="stylesheet" href="./css/nativize.css" />
+    <link rel="stylesheet" href="./css/font-awesome.css" />
+    <link rel="stylesheet" href="./css/main.css" />
+  </head>
+  <body>
+    <div id="loader-container" class="hide">
+      <div id="loader">
+      </div>
+      <p id="loader-text">Test</p>
+    </div>
+    <div id="content" class="container-fluid">
+      <section id="service-status">
+        <div class="page-header row">
+          <h1>Service Status</h1>
+        </div>
+        <div class="row">
+          <form>
+            <div class="input-group">
+              <input type="text" class="form-control" disabled aria-describedby="owncloud-status" value="OwnCloud Service">
+              <span class="input-group-addon" id="owncloud-status"><div class="led-green"></div></span>
+            </div>
+            <div class="input-group">
+              <input type="text" class="form-control" disabled aria-describedby="ulc-status" value="ULC Service">
+              <span class="input-group-addon" id="ulc-status"><div class="led-red"></div></span>
+            </div>
+        </div>
+      </section>
+      
+      <section id="contexts">
+        <div class="page-header row">
+          <h1>Contexts</h1>
+        </div>
+        <div id="elements" class="row" style="overflow-y:auto"></div>
+      </section>
+      <div class="page-header row">
+        <h1>Debug Tools</h1>
+      </div>
+      <div class="row">
+        <button type="button" id="testbtn" class="btn btn-default">Get Context</button>
+        <button type="button" id="cleanbtn" class="btn btn-default">Clean</button>
+        <button type="button" id="resetbtn" class="btn btn-default">Reset Context</button>
+        <button type="button" id="verbosebtn" class="btn btn-default">Toggle Verbose</button>
+      </div>
+    </div>
+
+    <script>
+    	require("./mainWin");
+    </script>
+  </body>
+</html>
