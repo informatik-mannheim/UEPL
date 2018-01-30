@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 
-using ProjectAPI.Attributes;
-using ProjectAPI.Extensions;
-using ProjectAPI.Models;
+using ULCWebAPI.Attributes;
+using ULCWebAPI.Extensions;
+using ULCWebAPI.Models;
 
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IOF = System.IO.File;
 
-namespace ProjectAPI.Controllers
+namespace ULCWebAPI.Controllers
 {
     /// <summary>
     /// 

@@ -6,11 +6,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ProjectAPI.Extensions;
-using ProjectAPI.Models;
-using ProjectAPI.Security;
+using ULCWebAPI.Extensions;
+using ULCWebAPI.Models;
+using ULCWebAPI.Security;
+using ULCWebAPI.Security;
 
-namespace ProjectAPI
+namespace ULCWebAPI
 {
     /// <summary>
     /// 
@@ -75,7 +76,24 @@ namespace ProjectAPI
 #if !DEMO
             LdapConfig conf = new LdapConfig();
             Configuration.Bind("ldap_auth", conf);
-            services.AddScoped<IAuthenticationService>((auth) => new LdapAuthenticationService(conf));
+
+            var signatureSection = Configuration.GetSection("SignatureService");
+            var certFile = "";
+            var certFilePassword = "";
+
+            if (signatureSection != null)
+            {
+                certFile = signatureSection["Certificate"];
+                certFilePassword = signatureSection["Password"];
+            }
+            
+            services.AddScoped<IAuthenticationService>((service) => new LdapAuthenticationService(conf));
+            services.AddSingleton<ISignatureService>((service) =>
+            {
+                var rsaSignatureService = new RSASignatureService();
+                rsaSignatureService.LoadCertificate(certFile, certFilePassword);
+                return rsaSignatureService;
+            });
 #else
             services.AddScoped<IAuthenticationService>((a) => new SimpleAuthenticationService());
 #endif

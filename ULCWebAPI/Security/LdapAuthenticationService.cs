@@ -7,9 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using ProjectAPI.Helper;
+using ULCWebAPI.Helper;
 
-namespace ProjectAPI.Security
+namespace ULCWebAPI.Security
 {
     /// <summary>
     /// Service for authentication against a directory server (LDAP)

@@ -3,23 +3,32 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProjectAPI.Models;
+using ULCWebAPI.Models;
 using System;
 using System.Security.Cryptography;
 
 using ENV = System.Environment;
 using System.Text;
+using System.Security.Cryptography.X509Certificates;
+using ULCWebAPI.Attributes;
+using ULCWebAPI.Helper;
 
-namespace ProjectAPI.Controllers
+namespace ULCWebAPI.Controllers
 {
     /// <summary>
     /// 
     /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
+#if !DEMO
+    [SignData]
+#endif
     public class RecipeController : Controller
     {
-        private static string DownloadScript = $"URL=$!URL!${ENV.NewLine}FILENAME=$(basename $URL){ENV.NewLine}if [ -e $FILENAME ]; then {ENV.NewLine}echo 'File ' + $FILENAME + ' exists... skipping download';{ENV.NewLine}else{ENV.NewLine}wget -q $URL{ENV.NewLine}fi{ENV.NewLine}";
+        private const string NL = "\n";
+
+        // TODO: Refactor this. The logic should be used by the service after determining which os it runs...
+        private static string DownloadScript = $"URL=$!URL!${NL}FILENAME=$(basename $URL){NL}if [ -e $FILENAME ]; then {NL}echo 'File ' + $FILENAME + ' exists... skipping download';{NL}else{NL}wget -q $URL{NL}fi{NL}";
 
         private APIDatabaseContext _context;
 
@@ -44,49 +53,49 @@ namespace ProjectAPI.Controllers
             if (!_context.Lectures.Any(l => l.ID == id))
                 return NotFound();
 
-            var downloadAction = await GenerateResponse(id, ResolveType.Download);
-            var installAction = await GenerateResponse(id, ResolveType.Install);
-            var removeAction = await GenerateResponse(id, ResolveType.Remove);
-            var switchAction = await GenerateResponse(id, ResolveType.Switch);
-            var unswitchAction = await GenerateResponse(id, ResolveType.Unswitch);
-
-            StringBuilder builder = new StringBuilder();
-
-            SHA256 sha2 = SHA256.Create();
-            builder.AppendLine($"Download = {GetHash(downloadAction, sha2)}");
-            builder.AppendLine($"Install = {GetHash(installAction, sha2)}");
-            builder.AppendLine($"Remove = {GetHash(removeAction, sha2)}");
-            builder.AppendLine($"Switch = {GetHash(switchAction, sha2)}");
-            builder.AppendLine($"Unswitch = {GetHash(unswitchAction, sha2)}");
-
-            var lectureItem = await _context.Lectures.Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
-
-            foreach(var package in lectureItem.Contents)
+            try
             {
-                var artifact = await _context.Artifacts.Include(a => a.StorageItems).SingleOrDefaultAsync(item => item.ID == package.ArtifactRefID);
+                var downloadAction = await GenerateResponse(id, ResolveType.Download);
+                var installAction = await GenerateResponse(id, ResolveType.Install);
+                var removeAction = await GenerateResponse(id, ResolveType.Remove);
+                var switchAction = await GenerateResponse(id, ResolveType.Switch);
+                var unswitchAction = await GenerateResponse(id, ResolveType.Unswitch);
 
-                if (artifact == null)
-                    continue;
-                else
+                StringBuilder builder = new StringBuilder();
+
+                SHA256 sha2 = SHA256.Create();
+                builder.AppendLine($"Download = {GetHash(downloadAction, sha2)}");
+                builder.AppendLine($"Install = {GetHash(installAction, sha2)}");
+                builder.AppendLine($"Remove = {GetHash(removeAction, sha2)}");
+                builder.AppendLine($"Switch = {GetHash(switchAction, sha2)}");
+                builder.AppendLine($"Unswitch = {GetHash(unswitchAction, sha2)}");
+
+                var lectureItem = await _context.Lectures.Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
+
+                foreach (var package in lectureItem.Contents)
                 {
-                    foreach(var file in artifact.StorageItems)
+                    var artifact = await _context.Artifacts.Include(a => a.StorageItems).SingleOrDefaultAsync(item => item.ID == package.ArtifactRefID);
+
+                    if (artifact == null)
+                        continue;
+                    else
                     {
-                        builder.AppendLine($"{file.Filename} = {file.Hash}");
+                        foreach (var file in artifact.StorageItems)
+                        {
+                            builder.AppendLine($"{file.Filename} = {file.Hash}");
+                        }
                     }
                 }
+
+                var data = builder.ToString();
+                return Ok(data);
+
             }
-
-            var data = builder.ToString();
-
-            // RSA Signatur 
-            // (DSA requires secured channel with session key K)
-
-            // var ecdsa = new RSACryptoServiceProvider();
-            // Response.Headers.Add(new KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues>("Signature", Microsoft.Extensions.Primitives.StringValues.Empty));
-            // var cert = System.Security.Cryptography.X509Certificates.X509Certificate.CreateFromCertFile("key.pem");
-
-
-            return Ok(data);
+            catch(Exception e)
+            {
+                Tracer.TraceMessage(e);
+                throw e;
+            }
         }
 
         private static string GetHash(string downloadAction, SHA256 sha2)

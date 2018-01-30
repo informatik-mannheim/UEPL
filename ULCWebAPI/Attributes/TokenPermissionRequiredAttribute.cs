@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using ProjectAPI.Extensions;
-using ProjectAPI.Helper;
-using ProjectAPI.Models;
+using ULCWebAPI.Extensions;
+using ULCWebAPI.Helper;
+using ULCWebAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace ProjectAPI.Attributes
+namespace ULCWebAPI.Attributes
 {
     /// <summary>
     /// 

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace ProjectAPI.Helper
+namespace ULCWebAPI.Helper
 {
     /// <summary>
     /// Class to trace messages (caller and other diagnostic vars)

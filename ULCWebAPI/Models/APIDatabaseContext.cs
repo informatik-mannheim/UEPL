@@ -2,11 +2,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using ProjectAPI.Models;
+using ULCWebAPI.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using ProjectAPI.Security;
+using ULCWebAPI.Security;
 
-namespace ProjectAPI.Models
+namespace ULCWebAPI.Models
 {
     /// <summary>
     /// 

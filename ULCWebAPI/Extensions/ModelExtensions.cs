@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProjectAPI.Models;
+using ULCWebAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProjectAPI.Extensions
+namespace ULCWebAPI.Extensions
 {
     /// <summary>
     /// 

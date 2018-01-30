@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
-using ProjectAPI.Models;
+using ULCWebAPI.Models;
 using Newtonsoft.Json;
 
-namespace ProjectAPI.Security
+namespace ULCWebAPI.Security
 {
     /// <summary>
     /// 

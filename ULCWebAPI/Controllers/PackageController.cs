@@ -3,13 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ProjectAPI.Models;
-using ProjectAPI.Extensions;
+using ULCWebAPI.Models;
+using ULCWebAPI.Extensions;
 using System;
-using ProjectAPI.Helper;
-using ProjectAPI.Attributes;
+using ULCWebAPI.Helper;
+using ULCWebAPI.Attributes;
 
-namespace ProjectAPI.Controllers
+namespace ULCWebAPI.Controllers
 {
     /// <summary>
     /// 

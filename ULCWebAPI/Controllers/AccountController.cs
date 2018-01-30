@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-using ProjectAPI.Attributes;
-using ProjectAPI.Extensions;
-using ProjectAPI.Helper;
-using ProjectAPI.Models;
-using ProjectAPI.Security;
+using ULCWebAPI.Attributes;
+using ULCWebAPI.Extensions;
+using ULCWebAPI.Helper;
+using ULCWebAPI.Models;
+using ULCWebAPI.Security;
 
 using System;
 using System.Linq;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 using HttpStatusCode = System.Net.HttpStatusCode;
 
-namespace ProjectAPI.Controllers
+namespace ULCWebAPI.Controllers
 {
     /// <summary>
     /// 

@@ -1,0 +1,8 @@
+{
+  "packages": {
+    "ace": {
+      "path": "wwwroot/app/lib/ace",
+      "version": "1.2.9"
+    }
+  }
+}

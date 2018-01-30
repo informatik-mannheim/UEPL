@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ProjectAPI.Models
+namespace ULCWebAPI.Models
 {
     /// <summary>
     /// Contains a Lecture object with string based key and content references

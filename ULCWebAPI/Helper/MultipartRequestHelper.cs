@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ProjectAPI.Helper
+namespace ULCWebAPI.Helper
 {
     public static class MultipartRequestHelper
     {

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ProjectAPI.Models
+namespace ULCWebAPI.Models
 {
     /// <summary>
     /// Basis model with key identifier
