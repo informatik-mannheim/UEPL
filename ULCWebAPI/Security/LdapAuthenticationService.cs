@@ -52,6 +52,7 @@ namespace ULCWebAPI.Security
 
                 var filter = string.Format(_config.SearchFilter, username);
                 var results = _connection.Search(_config.SearchBase, LdapConnection.SCOPE_SUB, filter, extractFields, false);
+                System.Threading.Thread.Sleep(100); // fix ldap yields no result
                 var displayName = "";
                 var employeeType = "";
                 var uidNumber = "";
@@ -75,17 +76,30 @@ namespace ULCWebAPI.Security
                         }
                         catch (LdapException ex)
                         {
+                            Tracer.TraceMessage(ex);
                             continue;
                         }
                     }
                 }
 
-                return _connection.Bound ? new ApplicationUser { UserName = username, DisplayName = displayName, LdapID = uidNumber, EmployeeType = employeeType, Email = mail } : null;
+                ApplicationUser ldapUser = null;
+
+                if(_connection.Bound)
+                    ldapUser = new ApplicationUser { UserName = username, DisplayName = displayName, LdapID = uidNumber, EmployeeType = employeeType, Email = mail };
+
+                Tracer.TraceMessage($"Got user informations from ldap: {ldapUser}");
+
+                return ldapUser;
             }
             catch(Exception e)
             {
                 Tracer.TraceMessage(e, TraceLevel.ERROR);
                 return null;
+            }
+            finally
+            {
+                _connection.Disconnect();
+                _connection.Dispose();
             }
         }
 

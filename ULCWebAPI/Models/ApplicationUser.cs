@@ -39,5 +39,14 @@ namespace ULCWebAPI.Security
         /// 
         /// </summary>
         public string UserName { get; internal set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"User {DisplayName} with username {UserName} and email {Email} as {EmployeeType}";
+        }
     }
 }
