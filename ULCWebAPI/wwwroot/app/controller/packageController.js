@@ -90,6 +90,11 @@ app.controller("packageDetailController", ($scope, $routeParams, $resource, Pack
         ]);
     };
 
+    $scope.update = () => 
+    {
+        $scope.package.$save();
+    };
+
     $scope.refresh();
     
 });

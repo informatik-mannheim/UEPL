@@ -32,21 +32,28 @@
                         <span class="input-group-addon"><i class="glyphicon glyphicon-cog"></i></span>
                         <input ng-model="nArtifact.id" class="form-control" type="text" placeholder="Artifact ID" required />
                     </div>
-                    <div class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-plus"></i></span>
-                        <input ng-model="nArtifact.installAction" class="form-control" type="text" placeholder="Install Command" required />
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-minus"></i></span>
-                        <input ng-model="nArtifact.removeAction" class="form-control" type="text" placeholder="Remove Command" required />
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-refresh"></i></span>
-                        <input ng-model="nArtifact.switchAction" class="form-control" type="text" placeholder="Switch Command" required />
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-addon"><i class="glyphicon glyphicon-remove"></i></span>
-                        <input ng-model="nArtifact.unswitchAction" class="form-control" type="text" placeholder="Unswitch Command" required />
+                    <hr />
+                    <button type="button" class="btn btn-default" data-toggle="collapse" data-target="#optionalfields" aria-expanded="false" aria-controls="optionalfields">
+                        Toggle optional fields <span><i class="glyphicon glyphicon-chevron-down"></i></span>
+                    </button>
+                    <br />
+                    <div id="optionalfields" class="collapse">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-plus"></i></span>
+                            <input ng-model="nArtifact.installAction" class="form-control" type="text" placeholder="Install Command" required />
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-minus"></i></span>
+                            <input ng-model="nArtifact.removeAction" class="form-control" type="text" placeholder="Remove Command" required />
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-refresh"></i></span>
+                            <input ng-model="nArtifact.switchAction" class="form-control" type="text" placeholder="Switch Command" required />
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-remove"></i></span>
+                            <input ng-model="nArtifact.unswitchAction" class="form-control" type="text" placeholder="Unswitch Command" required />
+                        </div>
                     </div>
                 </form>
             </div>

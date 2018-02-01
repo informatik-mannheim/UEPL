@@ -43,9 +43,9 @@ body {
   <form ng-submit class="form-signin">
     <h2 class="form-signin-heading">Please sign in</h2>
     <label for="inputName" class="sr-only">User Name</label>
-    <input type="text" id="inputName" class="form-control" placeholder="Username" ng-model="loginName" required autofocus>
+    <input type="text" id="inputName" class="form-control" autocomplete="username" placeholder="Username" ng-model="loginName" required autofocus>
     <label for="inputPassword" class="sr-only">Password</label>
-    <input type="password" id="inputPassword" class="form-control" placeholder="Password" ng-model="loginPassword" required>
+    <input type="password" id="inputPassword" class="form-control" autocomplete="current-password" placeholder="Password" ng-model="loginPassword" required>
     <input type="submit" class="btn btn-lg btn-primary btn-block" ng-disabled="loginButtonDisabled" ng-click="login()" value="Sign in" />
   </form>
 </div>

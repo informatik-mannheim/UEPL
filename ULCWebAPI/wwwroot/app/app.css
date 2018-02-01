@@ -94,6 +94,17 @@ table th, table td
     font-size: xx-large;
 }
 
+.dropdown-menu > li > b
+{
+    padding: 3px 20px;
+}
+
+.dropdown-menu > li > hr
+{
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
 .dropdown-right 
 {
     left: auto !important;
@@ -104,7 +115,7 @@ table th, table td
 
 .notification 
 {
-    background: #1349dd !important;
+    background: #046f12 !important;
     color: antiquewhite !important;
     font-size: xx-large;
 }
@@ -115,7 +126,7 @@ table th, table td
 {
     .form-signin
     {
-        zoom: 2;
+        zoom: 1.75;
     }
 }
 

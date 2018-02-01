@@ -17,7 +17,8 @@ app.service("UserService", function()
 {
 	let userInfo = {};
 	let tokenData = "";
-	let validUntil = "";
+    let validUntil = "";
+    let checkTokenInterval = undefined;
 
 	userInfo = JSON.parse(localStorage.getItem("User"));
 	tokenData = localStorage.getItem("Token");
@@ -54,6 +55,16 @@ app.service("UserService", function()
 			validUntil = value;
 			localStorage.setItem("ValidUntil", value);
 		}
+    };
+
+    this.TokenHeartbeat = (value) =>
+    {
+        if (!value)
+            return angular.copy(checkTokenInterval);
+        else
+        {
+            checkTokenInterval = value;
+        }
     };
 
     this.Clear = () => 
