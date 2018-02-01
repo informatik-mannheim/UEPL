@@ -52,33 +52,28 @@ namespace ULCWebAPI.Security
 
                 var filter = string.Format(_config.SearchFilter, username);
                 var results = _connection.Search(_config.SearchBase, LdapConnection.SCOPE_SUB, filter, extractFields, false);
-                System.Threading.Thread.Sleep(100); // fix ldap yields no result
+                // System.Threading.Thread.Sleep(100); // fix ldap yields no result
                 var displayName = "";
                 var employeeType = "";
                 var uidNumber = "";
                 var mail = "";
                 
-                if(results.Count != 0)
+                foreach(var entry in results)
                 {
-                    while (results.hasMore())
+                    try
                     {
-                        try
+                        if (entry != null)
                         {
-                            var entry = results.next();
-
-                            if (entry != null)
-                            {
-                                displayName = entry.getAttribute(nameof(displayName)).StringValue;
-                                employeeType = entry.getAttribute(nameof(employeeType)).StringValue;
-                                uidNumber = entry.getAttribute(nameof(uidNumber)).StringValue;
-                                mail = entry.getAttribute(nameof(mail)).StringValue;
-                            }
+                            displayName = entry.getAttribute(nameof(displayName)).StringValue;
+                            employeeType = entry.getAttribute(nameof(employeeType)).StringValue;
+                            uidNumber = entry.getAttribute(nameof(uidNumber)).StringValue;
+                            mail = entry.getAttribute(nameof(mail)).StringValue;
                         }
-                        catch (LdapException ex)
-                        {
-                            Tracer.TraceMessage(ex);
-                            continue;
-                        }
+                    }
+                    catch (LdapException ex)
+                    {
+                        Tracer.TraceMessage(ex);
+                        continue;
                     }
                 }
 
