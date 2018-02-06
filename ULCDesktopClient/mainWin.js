@@ -178,7 +178,8 @@ let update = () =>
 let updateData = () => 
 {
     console.debug("Checking for new lectures...");
-    fetch("http://elke.sr.hs-mannheim.de:10000/api/lecture").then(response => 
+    //fetch("http://elke.sr.hs-mannheim.de:10000/api/lecture").then(response => 
+    fetch("http://localhost:10000/api/lecture").then(response => 
     {
         if(response.ok)
             return response.json();

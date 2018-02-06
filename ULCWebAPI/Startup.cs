@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using ULCWebAPI.Extensions;
 using ULCWebAPI.Models;
 using ULCWebAPI.Security;
-using ULCWebAPI.Security;
 
 namespace ULCWebAPI
 {

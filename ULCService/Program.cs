@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
@@ -31,9 +33,10 @@ namespace ProjectClient
         static bool     started = true, quit, verbose = true;
         static int      tries = 0, ipcPort = 10050;
         static string   context = string.Empty, activeContext = context,
-                        protocol = "http", host = "elke.sr.hs-mannheim.de:10000",
+                        protocol = "http", host = "localhost:10000",
                         resourcePath = "/api/recipe/{lec}/{cmd}", resourceInfoPath = "/api/lecture/{lec}",
-                        directory = string.Empty, recipeRepository = string.Empty;
+                        directory = string.Empty, recipeRepository = string.Empty,
+                        certFile = string.Empty, certPassword = string.Empty;
 
         static RestClient restClient;
         static RestRequest restRequest;
@@ -42,17 +45,19 @@ namespace ProjectClient
         static ManualResetEventSlim continueRequestedEvent = new ManualResetEventSlim(false);
         static Config config = new Config();
         static List<Context> contexts = new List<Context>();
+
         static TcpListener tcpListener;
         static TcpClient tcpClient;
+
         static ProcessStartInfo processInfo;
+        static RSA rsa;
         volatile static ContextCommand actualCommand = ContextCommand.NONE;
 
         static Program()
         {
             Console.CancelKeyPress += (sender, e) => 
             {
-                e.Cancel = true;
-                quit = true;
+                e.Cancel = true; quit = true;
 
                 if (tcpClient != null && tcpClient.Client.IsConnected())
                     tcpClient.Client.Shutdown(SocketShutdown.Both);
@@ -68,7 +73,7 @@ namespace ProjectClient
 
         static void PlatformDetect()
         {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (OSVersion.Platform == PlatformID.Win32NT)
                 processInfo.FileName = "cmd.exe";
             else
                 processInfo.FileName = "/bin/bash";
@@ -77,10 +82,8 @@ namespace ProjectClient
         static void Main(string[] args)
         {
             // Use SO_REUSEADDR to reuse an idle socket (TIME_IDLE) state
-            tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-            tcpListener.Start(1);
-            new Thread(new ThreadStart(AcceptAndHandleClients)).Start(); // Handle Incoming Connections & Commands
-            ServiceMain(); // Actual Main Loop
+            StartTCPServer();
+            ServiceMain();
 
             // CLEANUP
             tcpListener.Stop();
@@ -88,6 +91,21 @@ namespace ProjectClient
 
             foreach (var ctx in contexts)
                 ctx.Save(Path.Combine(recipeRepository, ctx.ID, "meta"));
+        }
+
+        private static Task StartTCPServer()
+        {
+            tcpListener = new TcpListener(IPAddress.Any, ipcPort);
+            tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            tcpListener.Start(1);
+            //new Thread(new ThreadStart(AcceptAndHandleClients)).Start(); // Handle Incoming Connections & Commands
+            return Task.Run((Action)AcceptAndHandleClients);
+        }
+
+        private static void InitSignatureService()
+        {
+            var pubcert = new X509Certificate2(certFile, certPassword);
+            rsa = pubcert.GetRSAPublicKey();
         }
 
         static void Init()
@@ -121,15 +139,18 @@ namespace ProjectClient
             resourcePath = config[nameof(resourcePath)];
             resourceInfoPath = config[nameof(resourceInfoPath)];
             int.TryParse(config[nameof(ipcPort)], out ipcPort);
+            certFile = config[nameof(certFile)];
+            certPassword = config[nameof(certPassword)];
 
             restClient = new RestClient(protocol + "://" + host);
-            tcpListener = new TcpListener(IPAddress.Any, ipcPort);
 
             processInfo = new ProcessStartInfo();
             processInfo.UseShellExecute = false;
             processInfo.RedirectStandardOutput = true;
             processInfo.RedirectStandardError = true;
             processInfo.CreateNoWindow = true;
+
+            InitSignatureService();
         }
 
         static void ServiceMain()
@@ -208,9 +229,8 @@ namespace ProjectClient
             try
             {
                 var res = await restClient.ExecuteAsync(restRequest);
-
-                var script = res.Content; 
-                //var script = res.Content.Replace(" && ", " || true && ");
+                byte[] signature = new byte[256];
+                var script = res.Content;
 
                 Log($"GET Response => {res.StatusCode} ({(int)res.StatusCode})");
 
@@ -220,62 +240,21 @@ namespace ProjectClient
                     return;
                 }
 
+                var verified = VerifySignature(res);
+
+                if(!verified)
+                {
+                    tries = 3;
+                    Log($"Script file are not properly signed by the server!");
+                }
+
                 if (!File.Exists(commandFilePath) || !File.ReadAllText(commandFilePath).Contains(script))
                 {
                     WriteScriptFile(commandFilePath, script);
                     Log($"File written to: {commandFilePath}");
                 }
 
-                Log("Executing script file: " + commandFilePath);
-
-                SendProgressEvent(ProgressEvent.Report, $"Executing Script '{command}'...");
-
-                if (Environment.OSVersion.Platform == PlatformID.Unix)
-                    processInfo.Arguments = commandFilePath;
-                else
-                    processInfo.Arguments = @"/C " + commandFilePath;
-                
-                processInfo.WorkingDirectory = Path.GetDirectoryName(commandFilePath);
-
-                List<string> output = new List<string>(), error = new List<string>();
-
-                var proc = new Process();
-                proc.StartInfo = processInfo;
-                DateTime lastUpdate = DateTime.Now;
-
-                proc.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
-                {
-                    lastUpdate = DateTime.Now;
-                    output.Add(e.Data);
-                });
-
-                proc.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
-                {
-                    lastUpdate = DateTime.Now;
-                    error.Add(e.Data);
-                });
-
-
-                proc.Start();
-                proc.BeginOutputReadLine();
-                proc.BeginErrorReadLine();
-
-                await Task.Run(() =>
-                {
-                    while(!proc.HasExited)
-                    {
-                        if (lastUpdate.AddMinutes(3) < DateTime.Now)
-                        {
-                            proc.Kill();
-                            return;
-                        }
-
-                        Thread.Sleep(1000);
-                    }
-                });
-
-                int exitcode = proc.ExitCode;
-                Log($"Job finished with exit code: {exitcode}");
+                int exitcode = ExecuteScript(command, commandFilePath);
 
                 if (exitcode == 0)
                     SetContextState(command, usedContext);
@@ -295,12 +274,85 @@ namespace ProjectClient
             }
         }
 
+        private static int ExecuteScript(ContextCommand command, string commandFilePath)
+        {
+            Log("Executing script file: " + commandFilePath);
+            SendProgressEvent(ProgressEvent.Report, $"Executing Script '{command}'...");
+
+            if (OSVersion.Platform == PlatformID.Unix)
+                processInfo.Arguments = commandFilePath;
+            else
+                processInfo.Arguments = @"/C " + commandFilePath;
+
+            processInfo.WorkingDirectory = Path.GetDirectoryName(commandFilePath);
+
+            List<string> output = new List<string>(), error = new List<string>();
+
+            var proc = new Process();
+            proc.StartInfo = processInfo;
+            DateTime lastUpdate = DateTime.Now;
+
+            proc.OutputDataReceived += new DataReceivedEventHandler((sender, e) =>
+            {
+                lastUpdate = DateTime.Now;
+                output.Add(e.Data);
+            });
+
+            proc.ErrorDataReceived += new DataReceivedEventHandler((sender, e) =>
+            {
+                lastUpdate = DateTime.Now;
+                error.Add(e.Data);
+            });
+
+            proc.Start();
+            proc.BeginOutputReadLine();
+            proc.BeginErrorReadLine();
+
+            while (!proc.HasExited)
+            {
+                if (lastUpdate.AddMinutes(3) < DateTime.Now)
+                    proc.Kill();
+
+                Thread.Sleep(1000);
+            }
+
+            Log($"Job finished with exit code: {proc.ExitCode}");
+            return proc.ExitCode;
+        }
+
+        private static bool VerifySignature(RestResponse res)
+        {
+            byte[] signature = null;
+
+            foreach (var header in res.Headers)
+            {
+                if (header.Name == "Signature")
+                {
+                    // BASE64 Encoded SHA256 signature
+                    string sig = header.Value as string;
+
+                    if (sig == null)
+                        throw new System.Security.SecurityException("No signature data found!");
+
+                    signature = Convert.FromBase64String(sig);
+                }
+            }
+
+            if (signature == null)
+                return false;
+
+            //var data = Encoding.UTF8.GetBytes(res.Content);
+            var data = res.RawBytes;
+            var verified = rsa.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            return verified;
+        }
+
         private static void WriteScriptFile(string commandFilePath, string script)
         {
-            if (Environment.OSVersion.Platform == PlatformID.Unix)
-                File.WriteAllText(commandFilePath, @"#!/bin/bash" + Environment.NewLine + script + Environment.NewLine + "exit $?;");
+            if (OSVersion.Platform == PlatformID.Unix)
+                File.WriteAllText(commandFilePath, @"#!/bin/bash" + NewLine + script + NewLine + "exit $?;");
             else
-                File.WriteAllText(commandFilePath, script + Environment.NewLine + @"exit /b %errorlevel%");
+                File.WriteAllText(commandFilePath, script + NewLine + @"exit /b %errorlevel%");
         }
 
         static void SendProgressEvent(ProgressEvent evt, string arg)
@@ -315,6 +367,9 @@ namespace ProjectClient
                     break;
                 case ProgressEvent.End:
                     tcpClient.SendStatusMessage("progress-event-end", arg);
+                    break;
+
+                default:
                     break;
             }
         }

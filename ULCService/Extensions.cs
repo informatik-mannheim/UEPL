@@ -11,11 +11,7 @@ namespace ProjectClient
 {
     public static class Extensions
     {
-#if DEBUG
         public static bool VERBOSE = true;
-#else
-        public static bool VERBOSE = false;
-#endif
 
         const string MESSAGE_TERMINATOR = "|||";
 
@@ -73,8 +69,10 @@ namespace ProjectClient
 
         public static void Log(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0, bool ignoreVerbose = false)
         {
+#if DEBUG
             if(VERBOSE || ignoreVerbose)
                 Console.WriteLine($"[{Assembly.GetEntryAssembly().GetName().Name}:{Path.GetFileName(sourceFilePath)}@{sourceLineNumber}]: {message}");
+#endif
         }
     }
 }
