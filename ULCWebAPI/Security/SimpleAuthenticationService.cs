@@ -9,7 +9,7 @@ namespace ULCWebAPI.Security
     {
         public ApplicationUser Login(string username, string password)
         {
-            return new ApplicationUser { UserName = "demo" };
+            return new ApplicationUser { UserName = "demo", DisplayName = "Demo Account" };
         }
     }
 }
