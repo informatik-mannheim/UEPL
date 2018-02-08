@@ -43,6 +43,12 @@ namespace ULCWebAPI.Security
         /// <summary>
         /// 
         /// </summary>
+        [JsonIgnore]
+        public ICollection<UserLecture> UserLectures { get; internal set; } = new List<UserLecture>();
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <returns></returns>
         public override string ToString()
         {

@@ -46,6 +46,13 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// 
         /// </summary>
+        public DbSet<UserLecture> UserLectures { get; set; }
+
+        
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="optionsBuilder"></param>
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -64,6 +71,18 @@ namespace ULCWebAPI.Models
             modelBuilder.Entity<ArtifactStorageItem>().HasOne(asi => asi.ArtifactRef).WithMany(a => a.StorageItems).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<LoginToken>().HasOne(lt => lt.User);
 
+            modelBuilder.Entity<UserLecture>().HasKey(ul => new { ul.LectureID, ul.UserID });
+
+            modelBuilder.Entity<UserLecture>()
+                .HasOne(sc => sc.User)
+                .WithMany(s => s.UserLectures)
+                .HasForeignKey(sc => sc.UserID);
+
+
+            modelBuilder.Entity<UserLecture>()
+                .HasOne(sc => sc.Lecture)
+                .WithMany(s => s.UserLectures)
+                .HasForeignKey(sc => sc.LectureID);
 
             var fks = modelBuilder.Entity<Package>().Metadata.GetForeignKeys();
 

@@ -51,7 +51,7 @@ namespace ULCWebAPI.Extensions
             switch(genericTableType.Name)
             {
                 case "Lecture":
-                    return (IQueryable<T>)_context.Lectures.Include(l => l.Contents);
+                    return (IQueryable<T>)_context.Lectures.Include(l => l.Contents).Include(l => l.UserLectures).ThenInclude(ul => ul.User);
 
                 case "Package":
                     return (IQueryable<T>)_context.Packages.Include(p => p.Dependencies);
@@ -59,9 +59,11 @@ namespace ULCWebAPI.Extensions
                 case "Artifact":
                     return (IQueryable<T>)_context.Artifacts.Include(a => a.StorageItems);
 
-                case "LoginToken":
-                    return (IQueryable<T>)_context.Tokens.Include(lt => lt.User);
+                case "ApplicationUser":
+                    return (IQueryable<T>)_context.Users.Include(u => u.UserLectures).ThenInclude(ul => ul.Lecture);
 
+                case "LoginToken":
+                    return (IQueryable<T>)_context.Tokens.Include(lt => lt.User).ThenInclude(user => user.UserLectures).ThenInclude(ul => ul.Lecture);
                 default:
                     return default(IQueryable<T>);
             }
