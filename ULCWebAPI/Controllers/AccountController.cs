@@ -49,7 +49,7 @@ namespace ULCWebAPI.Controllers
         [AllowAnonymous]
         [AllowWithoutToken]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User user)
+        public IActionResult Login([FromBody] User user)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -129,17 +129,11 @@ namespace ULCWebAPI.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
+        [TokenPermissionRequired]
         [HttpGet("info")]
         public IActionResult GetUserInfo()
         {
-            var token = Request.GetToken();
-
-            if (!_context.IsTokenValid(token))
-            {
-                return new ContentResult() { StatusCode = (int)HttpStatusCode.Unauthorized, Content = "Token is not valid!" };
-            }
-
-            var loginToken = _context.GetLoginToken(token);
+            var loginToken = _context.GetLoginToken(Request.GetToken());
 
             if (loginToken == null)
                 return NotFound("Token not found!");
@@ -168,7 +162,7 @@ namespace ULCWebAPI.Controllers
                     return Json("Unauthorized");
                 }
 
-                return Json(new { User = info.User, username = info.User.UserName, valid = info.Valid });
+                return Json(new {  info.User, username = info.User.UserName, valid = info.Valid });
             }
             else
             {
