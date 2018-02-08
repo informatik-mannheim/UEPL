@@ -65,14 +65,14 @@ namespace ULCWebAPI.Controllers
                     Tracer.TraceMessage($"== Token Information =={Environment.NewLine}{loginToken}");
 #endif
                     return Json(loginToken);
-                }    
+                }
                 else
                 {
                     Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     return Json("Login Failed!");
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Tracer.TraceMessage($"Login Error: {e.Message}");
                 throw e;
@@ -176,5 +176,73 @@ namespace ULCWebAPI.Controllers
                 return Json("Forbidden");
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [TokenPermissionRequired]
+        [HttpGet("lecture")]
+        public IActionResult GetAllLectures()
+        {
+            var token = Request.GetToken();
+            var info = _context.GetLoginToken(token);
+            var lectures = info.User.UserLectures;
+
+            return Json(lectures);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [TokenPermissionRequired]
+        [HttpPost("lecture")]
+        public IActionResult ConnectLecture([FromBody] string id)
+        {
+            var token = Request.GetToken();
+            var info = _context.GetLoginToken(token);
+
+            var lectures = _context.UserLectures.Where(ul => ul.UserID == info.User.ID);
+
+            if (!_context.Lectures.Any(l => l.ID == id))
+                return NotFound("id");
+
+            if (lectures.Any(l => l.LectureID == id))
+                return NoContent();
+
+            _context.UserLectures.Add(new UserLecture() { LectureID = id, UserID = info.User.ID });
+            _context.SaveChanges();
+
+            return Json(info.User);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [TokenPermissionRequired]
+        [HttpDelete("lecture")]
+        public IActionResult DisconnectLecture([FromBody] string id)
+        {
+            var token = Request.GetToken();
+            var info = _context.GetLoginToken(token);
+
+            var lectures = _context.UserLectures.Where(ul => ul.UserID == info.User.ID);
+
+            if (!_context.Lectures.Any(l => l.ID == id))
+                return NotFound("id");
+
+            if (!lectures.Any(l => l.LectureID == id))
+                return NotFound("Not Connected");
+
+            var lecture = lectures.Single(l => l.LectureID == id);
+            _context.UserLectures.Remove(lecture);
+            _context.SaveChanges();
+
+            return Json(info.User);
+        }
+
     }
 }
