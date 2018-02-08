@@ -1,11 +1,21 @@
-﻿function checkToken($http, Config)
-{
-    return $http.get(Config.API + "account/validate");
-}
-
-app.controller("mainController", ($scope, $http, $location, $interval, Config, UserService) =>
+﻿app.controller("mainController", ($scope, $http, $location, $interval, Config, UserService) =>
 {
     $scope.location = $location.url();
+    $scope.createInterval = () =>
+    {
+        return $interval(() => 
+        {
+            $scope.checkToken($http, Config).catch(error =>
+            {
+                if ($scope.User)
+                    $scope.logout();
+            });
+        }, 2 * 60 * 1000);
+    };
+    $scope.checkToken = () =>
+    {
+        return $http.get(Config.API + "account/validate");
+    };
 
     $scope.links = [];
     $scope.links.push({ href: "/lecture",  name: "Lecture" });
@@ -24,6 +34,9 @@ app.controller("mainController", ($scope, $http, $location, $interval, Config, U
             return;
         
         $scope.User = UserService.User();
+
+        if (!UserService.TokenHeartbeat())
+            UserService.TokenHeartbeat($scope.createInterval());
     });
 
     $scope.navClick = (link) =>

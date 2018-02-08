@@ -12,7 +12,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="artifact in artifacts" ng-click="clicked(artifact)">
+                        <tr ng-repeat="artifact in artifacts">
                             <td>{{artifact.id}}</td>
                             <td><a ng-href="{{artifact.url}}">{{artifact.url}}</a></td>
                             <td><span class="glyphicon glyphicon-edit" aria-hidden="true" ng-click="edit(artifact)"></span>&nbsp;|&nbsp;<span class="glyphicon glyphicon-remove" aria-hidden="true" ng-click="remove(artifact)"></span></td>

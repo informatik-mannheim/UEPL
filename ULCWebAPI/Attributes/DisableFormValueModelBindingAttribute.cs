@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace ULCWebAPI.Attributes
 {
+    /// <summary>
+    /// Disables the value binding of form values. This enables the api to receive large amounts of data.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class DisableFormValueModelBindingAttribute : Attribute, IResourceFilter
     {

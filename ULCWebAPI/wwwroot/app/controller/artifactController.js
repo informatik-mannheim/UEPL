@@ -9,11 +9,6 @@
 
     refresh();
 
-    $scope.clicked = (artifact) =>
-    {
-        let singleArtifact = Artifact.get({ id: artifact.id }, () => { console.debug(singleArtifact); });
-    };
-
     $scope.edit = (artifact) => 
     {
         $location.path("/artifact/" + artifact.id);
@@ -46,8 +41,16 @@
     };
 });
 
-app.controller("artifactDetailController", ($scope, $resource, $routeParams, $http, $window, $location, Artifact, Config) =>
+app.controller("artifactDetailController", ($scope, $resource, $routeParams, $http, $window, $location, Artifact, Config, ngToast) =>
 {
+    let saveButton = document.getElementById("save");
+    saveButton.disabled = true;
+
+    let refreshFiles = () =>
+    {
+        const ArtifactItems = $http.get(Config.API + "artifact/" + $routeParams.id + "/file").then(res => $scope.artifact.storage = res.data);
+    };
+
     $scope.artifact = Artifact.get({id: $routeParams.id}, (artifact) => 
     {
         editors.ia.setValue(artifact.installAction);
@@ -65,7 +68,12 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
         editors.sa.resize();
         editors.ua.resize();
 
-        const ArtifactItems = $http.get(Config.API + "artifact/" + $routeParams.id + "/file").then(res => $scope.artifact.storage = res.data);
+        editors.ia.getSession().on('change', (e) => { saveButton.disabled = false; });
+        editors.ra.getSession().on('change', (e) => { saveButton.disabled = false; });
+        editors.sa.getSession().on('change', (e) => { saveButton.disabled = false; });
+        editors.ua.getSession().on('change', (e) => { saveButton.disabled = false; });
+
+        refreshFiles();
     });
 
     $scope.uploadFiles = () => 
@@ -83,27 +91,43 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
             method: "POST",
             url: Config.API + "artifact/" + $scope.artifact.id + "/file",
             transformRequest: angular.identity,
-            headers: 
-            {
-                "Content-Type": undefined
-            },
+            headers: { "Content-Type": undefined },
             data: data
         }).then(
         response =>
         {
-            console.log("upload ok");
+            ngToast.create({
+                className: "info notification",
+                content: "Upload complete!",
+                dismissButton: true
+            });
 
-            $window.location.reload();
         }, 
         error =>
         {
-            if(error.status == 403 || error.status == 401)
+            if (error.status == 403 || error.status == 401)
+            {
+                ngToast.create({
+                    className: "error notification",
+                    content: "Upload Error: Token isn't valid",
+                    dismissButton: true
+                });
                 $location.path("/login");
+            }
+            else
+            {
+                ngToast.create({
+                    className: "error notification",
+                    content: "Upload Error: " + error.statusText,
+                    dismissButton: true
+                });
+            }
         });
     };
 
     $scope.save = () => 
     {
+        saveButton.disabled = true;
         let cArtifact = Artifact.get({id: $routeParams.id});
 
         $scope.artifact.installAction = editors.ia.getValue();
@@ -111,7 +135,14 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
         $scope.artifact.switchAction = editors.sa.getValue();
         $scope.artifact.unswitchAction = editors.ua.getValue();
 
-        $scope.artifact.$update();
+        $scope.artifact.$update(res =>
+        {
+            ngToast.create({
+                className: "info notification",
+                content: "Scripts updated!",
+                dismissButton: true
+            });
+        });
     };
 
     $scope.removeStorageFile = (storageFile) =>

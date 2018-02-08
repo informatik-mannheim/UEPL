@@ -2,7 +2,7 @@
 {
     $scope.loginButtonDisabled = false;
 
-    checkToken($http, Config).then(res => 
+    $scope.checkToken($http, Config).then(res => 
     {
         if (res.status < 400)
         {
@@ -22,14 +22,7 @@
             UserService.Token(response.data.token);
             UserService.User(response.data.user);
             UserService.Valid(response.data.valid);
-            UserService.TokenHeartbeat($interval(() => 
-            {
-                checkToken($http, Config).catch(error =>
-                {
-                    if ($scope.User)
-                        $scope.logout();
-                });
-            }, 2*60*1000));
+            UserService.TokenHeartbeat($scope.createInterval());
 
             $http.defaults.headers.common.Token = UserService.Token();
 

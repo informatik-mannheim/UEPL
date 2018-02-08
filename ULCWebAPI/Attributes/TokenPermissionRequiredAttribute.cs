@@ -18,6 +18,7 @@ namespace ULCWebAPI.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class TokenPermissionRequiredAttribute : ActionFilterAttribute
     {
+        private bool oneRequirement = false;
         private string requiredRole = string.Empty;
         private List<string> usernames = new List<string>();
 
@@ -34,10 +35,12 @@ namespace ULCWebAPI.Attributes
         /// </summary>
         /// <param name="usernames"></param>
         /// <param name="requiredRole"></param>
-        public TokenPermissionRequiredAttribute(string[] usernames, string requiredRole = "")
+        /// <param name="or"></param>
+        public TokenPermissionRequiredAttribute(string[] usernames, string requiredRole = "", bool or = false)
         {
             this.usernames.AddRange(usernames);
             this.requiredRole = requiredRole;
+            this.oneRequirement = or;
         }
 
         /// <summary>
@@ -48,6 +51,7 @@ namespace ULCWebAPI.Attributes
         {
             try
             {
+                var inRole = false;
                 var allowAttributes = context.Filters.OfType<AllowWithoutTokenAttribute>();
 
                 foreach(var allowAttribute in allowAttributes)
@@ -80,26 +84,30 @@ namespace ULCWebAPI.Attributes
                 identity.AddClaim(new Claim(ClaimTypes.Role, user.EmployeeType == "staff" ? "Admin" : "User"));
                 identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
 
-                context.HttpContext.User = new ClaimsPrincipal(identity);
-                
-                if(!string.IsNullOrWhiteSpace(requiredRole))
+                if (!string.IsNullOrWhiteSpace(requiredRole))
                 {
-                    if(requiredRole.ToLower() == "admin" && user.EmployeeType != "staff")
+                    if (!identity.HasClaim(ClaimTypes.Role, requiredRole))
                     {
-                        context.Result = new ContentResult { Content = "User is not in a permitted role to perform this action", StatusCode = (int)HttpStatusCode.Forbidden };
-                        return;
+                        if (!oneRequirement)
+                        {
+                            context.Result = new ContentResult { Content = "User is not in a permitted role to perform this action", StatusCode = (int)HttpStatusCode.Forbidden };
+                            return;
+                        }
                     }
+                    else
+                        inRole = true;
                 }
 
                 if (usernames.Count > 0)
                 {
-                    if(!usernames.Contains(user.UserName))
+                    if (!usernames.Contains(user.UserName) && oneRequirement && !inRole)
                     {
                         context.Result = new ContentResult { Content = "User has no permission to do this action", StatusCode = (int)HttpStatusCode.Forbidden };
                         return;
                     }
                 }
 
+                context.HttpContext.User = new ClaimsPrincipal(identity);
                 base.OnActionExecuting(context);
             }
             catch(Exception e)
