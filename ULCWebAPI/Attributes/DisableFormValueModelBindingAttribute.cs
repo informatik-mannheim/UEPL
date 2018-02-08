@@ -13,6 +13,10 @@ namespace ULCWebAPI.Attributes
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class DisableFormValueModelBindingAttribute : Attribute, IResourceFilter
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
             var formValueProviderFactory = context.ValueProviderFactories
@@ -34,6 +38,10 @@ namespace ULCWebAPI.Attributes
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
         public void OnResourceExecuted(ResourceExecutedContext context)
         {
             

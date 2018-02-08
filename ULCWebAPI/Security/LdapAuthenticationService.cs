@@ -40,6 +40,12 @@ namespace ULCWebAPI.Security
             _connection = new LdapConnection { SecureSocketLayer = _config.UseSSL};
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public ApplicationUser Login(string username, string password)
         {
             try

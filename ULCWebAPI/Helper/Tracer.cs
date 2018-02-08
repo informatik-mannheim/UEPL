@@ -36,6 +36,7 @@ namespace ULCWebAPI.Helper
         /// 
         /// </summary>
         /// <param name="e"></param>
+        /// <param name="level"></param>
         /// <param name="memberName"></param>
         /// <param name="sourceFilePath"></param>
         /// <param name="sourceLineNumber"></param>

@@ -40,6 +40,7 @@ namespace ULCWebAPI.Controllers
         /// </summary>
         /// <param name="context"></param>
         /// <param name="environment"></param>
+        /// <param name="formOptions"></param>
         public ArtifactController(APIDatabaseContext context, IHostingEnvironment environment, IOptions<FormOptions> formOptions)
         {
             _defaultFormOptions = formOptions.Value;

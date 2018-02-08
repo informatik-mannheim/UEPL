@@ -111,6 +111,7 @@ namespace ULCWebAPI.Controllers
         /// <returns></returns>
         [Produces("text/plain")]
         [HttpGet("{id}/install")]
+        // TODO: Check installed contexts to identify missing packages and just send those install scripts and files
         public async Task<IActionResult> GetInstallScript([FromRoute] string id)
         {
             if (!_context.Lectures.Any(l => l.ID == id))

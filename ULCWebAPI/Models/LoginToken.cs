@@ -35,6 +35,10 @@ namespace ULCWebAPI.Models
         /// </summary>
         public DateTime Valid { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return $"Username: {User?.UserName}, Token: {Token}, Valid: {Valid}";

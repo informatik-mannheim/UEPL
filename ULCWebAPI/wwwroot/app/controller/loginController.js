@@ -33,7 +33,7 @@
         (response) =>
         {
             /*error*/
-            if (response.status == 500)
+            if (response.status === 500)
             {
                 console.log(response);
                 ngToast.create({ className: "danger", content: "Unknown Server Error!" });

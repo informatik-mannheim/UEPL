@@ -18,10 +18,10 @@
     {
         var nArtifact = new Artifact;
         nArtifact.id = artifact.id;
-        nArtifact.installAction = artifact.installAction == undefined ? "# install script" : artifact.installAction;
-        nArtifact.removeAction = artifact.removeAction == undefined ? "# remove script" : artifact.removeAction;
-        nArtifact.switchAction = artifact.switchAction == undefined ? "# switch script" : artifact.switchAction;
-        nArtifact.unswitchAction = artifact.unswitchAction == undefined ? "# unswitch script" : artifact.unswitchAction;
+        nArtifact.installAction = artifact.installAction === undefined ? "# install script" : artifact.installAction;
+        nArtifact.removeAction = artifact.removeAction === undefined ? "# remove script" : artifact.removeAction;
+        nArtifact.switchAction = artifact.switchAction === undefined ? "# switch script" : artifact.switchAction;
+        nArtifact.unswitchAction = artifact.unswitchAction === undefined ? "# unswitch script" : artifact.unswitchAction;
 
         nArtifact.$save(refresh);
     };
@@ -83,7 +83,7 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
 
         let data = new FormData();
 
-        for (let i = 0; i < files.length ; i++) 
+        for (let i = 0; i < files.length; i++) 
             data.append(files[i].name, files[i]);
 
         $http(
@@ -105,7 +105,7 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
         }, 
         error =>
         {
-            if (error.status == 403 || error.status == 401)
+            if (error.status === 403 || error.status === 401)
             {
                 ngToast.create({
                     className: "error notification",

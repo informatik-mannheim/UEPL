@@ -11,8 +11,15 @@ using System.Threading.Tasks;
 
 namespace ULCWebAPI.Attributes
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class GenerateAntiforgeryTokenCookieForAjaxAttribute : ActionFilterAttribute
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
         public override void OnActionExecuted(ActionExecutedContext context)
         {
             var antiforgery = context.HttpContext.RequestServices.GetService(typeof(IAntiforgery)) as IAntiforgery;
