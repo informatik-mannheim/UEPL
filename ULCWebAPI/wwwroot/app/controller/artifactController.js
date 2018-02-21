@@ -108,16 +108,17 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
             if (error.status === 403 || error.status === 401)
             {
                 ngToast.create({
-                    className: "error notification",
+                    className: "danger notification",
                     content: "Upload Error: Token isn't valid",
                     dismissButton: true
                 });
+
                 $location.path("/login");
             }
             else
             {
                 ngToast.create({
-                    className: "error notification",
+                    className: "danger notification",
                     content: "Upload Error: " + error.statusText,
                     dismissButton: true
                 });

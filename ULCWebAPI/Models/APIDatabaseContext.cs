@@ -31,7 +31,7 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// 
         /// </summary>
-        public DbSet<ArtifactStorageItem> Storage { get; set; }
+        public DbSet<ArtifactStorageItem> ArtifactStorage { get; set; }
 
         /// <summary>
         /// 

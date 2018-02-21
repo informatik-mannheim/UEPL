@@ -274,14 +274,14 @@ namespace ULCWebAPI.Controllers
 
                         hashValue = ComputeHash(sha2, filename);
 
-                        _context.Storage.Add(new ArtifactStorageItem() { ArtifactRef = artifact, Filename = Path.GetFileName(filename), Hash = hashValue });
+                        _context.ArtifactStorage.Add(new ArtifactStorageItem() { ArtifactRef = artifact, Filename = Path.GetFileName(filename), Hash = hashValue });
                         _context.SaveChanges();
                     }
                     else if (!artifact.StorageItems.Any(asi => asi.Filename == Path.GetFileName(filename)))
                     {
                         hashValue = ComputeHash(sha2, filename);
 
-                        _context.Storage.Add(new ArtifactStorageItem() { ArtifactRef = artifact, Filename = Path.GetFileName(filename), Hash = hashValue });
+                        _context.ArtifactStorage.Add(new ArtifactStorageItem() { ArtifactRef = artifact, Filename = Path.GetFileName(filename), Hash = hashValue });
                         _context.SaveChanges();
                     }
                 }

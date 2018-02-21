@@ -38,6 +38,6 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// 
         /// </summary>
-        public List<ArtifactStorageItem> StorageItems { get; set; }
+        public List<ArtifactStorageItem> StorageItems { get; set; } = new List<ArtifactStorageItem>();
     }
 }
