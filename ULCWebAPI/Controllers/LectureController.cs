@@ -1,15 +1,23 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ULCWebAPI.Models;
 using Microsoft.AspNetCore.Routing;
-using ULCWebAPI.Extensions;
-using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using System;
-using ULCWebAPI.Helper;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Linq;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+
 using ULCWebAPI.Attributes;
+using ULCWebAPI.Extensions;
+using ULCWebAPI.Helper;
+using ULCWebAPI.Models;
+
+using IOF = System.IO.File;
+
+using static ULCWebAPI.Helper.FileHelper;
 
 namespace ULCWebAPI.Controllers
 {
@@ -18,23 +26,24 @@ namespace ULCWebAPI.Controllers
     /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
-
-#if !DEMO
     [TokenPermissionRequired]
     [AllowWithoutToken(new string[] { "GET" })]
-#endif
     public class LectureController : Controller
     {
         private readonly APIDatabaseContext _context;
+        private readonly IHostingEnvironment _environment;
+        private readonly string _storagePath;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="context"></param>
-        public LectureController(APIDatabaseContext context)
+        /// <param name="environment"></param>
+        public LectureController(APIDatabaseContext context, IHostingEnvironment environment)
         {
             _context = context;
-
+            _environment = environment;
+            _storagePath = Path.Combine(_environment.ContentRootPath, "storage", "lectures");
         }
 
         // GET: api/Lecture
@@ -119,7 +128,7 @@ namespace ULCWebAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (!LectureItemExists(id))
+            else if (!lectureExists(id))
                 return NotFound(id);
 
 
@@ -128,6 +137,7 @@ namespace ULCWebAPI.Controllers
             try
             {
                 item.Name = (lecture.Name != null && lecture.Name != item.Name) ? lecture.Name : item.Name;
+                item.Version++;
 
                 _context.Update(item);
                 _context.SaveChanges();
@@ -161,7 +171,7 @@ namespace ULCWebAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (LectureItemExists(lectureItem.ID))
+            else if (lectureExists(lectureItem.ID))
                 return await GetLecture(lectureItem.ID);
 
             _context.Lectures.Add(lectureItem);
@@ -226,12 +236,167 @@ namespace ULCWebAPI.Controllers
                 }
             }
 
+            lecture.Version++;
+
             await _context.SaveChangesAsync();
 
             return AcceptedAtAction(nameof(GetLecture), new { id = lecture.ID });
         }
 
-        private bool LectureItemExists(string id)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("{id}/file")]
+        public IActionResult ListFiles([FromRoute] string id)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            else if (!lectureExists(id))
+                return NotFound(id);
+
+            var lecture = _context.GetFullTable<Lecture>().Where(li => li.ID == id).Single();
+            return Json(lecture.StorageItems);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        [HttpGet("{id}/file/{filename}")]
+        public IActionResult DownloadFile([FromRoute] string id, [FromRoute] string filename)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            else if (!lectureExists(id))
+                return NotFound(id);
+
+            var file = _context.GetFullTable<Lecture>().Single(li => li.ID == id)
+                       .StorageItems?.SingleOrDefault(lsi => lsi.Filename == filename);
+
+            if (file == null)
+                return NotFound(filename);
+            else
+            {
+                var filePath = Path.Combine(_storagePath, file.LectureRef.ID, file.Filename);
+
+                if (!IOF.Exists(filePath))
+                    return NotFound("File does not exist on server!");
+                else
+                    return File(IOF.ReadAllBytes(filePath), "application/octet-stream");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [DisableRequestSizeLimit]
+        [HttpPost("{id}/file")]
+        public IActionResult UploadFile([FromRoute] string id)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            else if (!lectureExists(id))
+                return NotFound();
+
+            long size = 0;
+
+            try
+            {
+                var lecture = _context.Lectures.Single((li) => li.ID == id);
+                string dirPath = Path.Combine(_storagePath, lecture.ID);
+
+                if (!Directory.Exists(dirPath))
+                    Directory.CreateDirectory(dirPath);
+
+                var files = Request.Form.Files;
+                var sha2 = System.Security.Cryptography.SHA256.Create();
+
+                foreach (var file in files)
+                {
+                    var filename = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+
+                    filename = Path.Combine(dirPath, filename);
+                    var pathFileName = Path.GetFileName(filename);
+
+                    size += file.Length;
+
+                    var hashValue = "";
+                    var isFilePresent = IOF.Exists(filename);
+                    var isFileInStorage = lecture.StorageItems.Any(lsi => lsi.Filename == pathFileName);
+
+                    if (!isFilePresent || !isFileInStorage)
+                    {
+                        if(!isFilePresent)
+                        {
+                            using (FileStream fs = new FileStream(filename, FileMode.CreateNew))
+                            {
+                                file.CopyTo(fs);
+                                fs.Flush();
+                            }
+                        }
+
+                        hashValue = ComputeHash(sha2, filename);
+
+                        _context.LectureStorage.Add(new LectureStorageItem() { LectureRef = lecture, Filename = Path.GetFileName(filename), Hash = hashValue });
+                        _context.SaveChanges();
+                    }
+                }
+
+                _context.Lectures.Update(lecture);
+                _context.SaveChanges();
+            }
+            catch (Exception e)
+            {
+                Tracer.TraceMessage(e);
+                throw;
+            }
+
+            return Ok(size);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        [HttpDelete("{id}/file/{filename}")]
+        public async Task<IActionResult> DeleteUploadedFile([FromRoute] string id, [FromRoute] string filename)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            else if (!lectureExists(id))
+                return NotFound(id);
+
+            var file = _context.GetFullTable<Lecture>().Single(li => li.ID == id)
+                          .StorageItems.SingleOrDefault(lsi => lsi.Filename == filename);
+
+            if (file == null)
+                return NotFound(filename);
+            else
+            {
+                var filePath = Path.Combine(_storagePath, file.LectureRef.ID, file.Filename);
+
+                if (!IOF.Exists(filePath))
+                    return NotFound("File does not exist on server!");
+                else
+                {
+                    // Remove File
+                    IOF.Delete(filePath);
+                    file.LectureRef.StorageItems?.Remove(file);
+                    await _context.SaveChangesAsync();
+                    return Ok();
+                }
+            }
+        }
+
+        private bool lectureExists(string id)
         {
             return _context.Lectures.Any(e => e.ID == id);
         }

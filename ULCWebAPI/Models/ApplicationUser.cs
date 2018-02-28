@@ -10,6 +10,17 @@ namespace ULCWebAPI.Security
     /// </summary>
     public class ApplicationUser : ModelBase<int>
     {
+        internal static string adminType = "staff";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool IsAdmin()
+        {
+            return EmployeeType == adminType;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -33,7 +44,7 @@ namespace ULCWebAPI.Security
         /// <summary>
         /// 
         /// </summary>
-        public string LdapID { get; internal set; }
+        public string PasswordHash { get; internal set; }
 
         /// <summary>
         /// 

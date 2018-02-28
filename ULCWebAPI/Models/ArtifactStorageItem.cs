@@ -8,25 +8,14 @@ using Newtonsoft.Json;
 namespace ULCWebAPI.Models
 {
     /// <summary>
-    /// 
+    /// Class for storing file informations associated with 
     /// </summary>
-    public class ArtifactStorageItem : ModelBase<int>
+    public class ArtifactStorageItem : StorageItem
     {
         /// <summary>
-        /// 
+        /// Reference object to keep track
         /// </summary>
+        [JsonIgnore]
         public Artifact ArtifactRef { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Required]
-        public string Filename { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Required]
-        public string Hash { get; set; }
     }
 }

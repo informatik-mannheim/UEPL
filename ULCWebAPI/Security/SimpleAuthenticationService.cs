@@ -18,7 +18,18 @@ namespace ULCWebAPI.Security
         /// <returns></returns>
         public ApplicationUser Login(string username, string password)
         {
-            return new ApplicationUser { UserName = "demo" };
+            if(username == "demo" && password == "demo")
+            {
+                return new ApplicationUser { UserName = "demo", EmployeeType = "staff", DisplayName = "Demo Account", Email = "demo@hs-mannheim.de" };
+            }
+            else if(username == "student" && password == "student")
+            {
+                return new ApplicationUser { UserName = "student", EmployeeType = "IB", DisplayName = "Student Account", Email = "student@stud.hs-mannheim.de" };
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

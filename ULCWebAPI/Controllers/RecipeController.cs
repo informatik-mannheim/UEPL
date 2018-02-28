@@ -20,9 +20,7 @@ namespace ULCWebAPI.Controllers
     /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
-#if !DEMO
     [SignData]
-#endif
     public class RecipeController : Controller
     {
         private const string NL = "\n";
@@ -55,22 +53,24 @@ namespace ULCWebAPI.Controllers
 
             try
             {
-                var downloadAction = await GenerateResponse(id, ResolveType.Download);
-                var installAction = await GenerateResponse(id, ResolveType.Install);
-                var removeAction = await GenerateResponse(id, ResolveType.Remove);
-                var switchAction = await GenerateResponse(id, ResolveType.Switch);
-                var unswitchAction = await GenerateResponse(id, ResolveType.Unswitch);
+                var downloadAction = await generateResponse(id, ResolveType.Download);
+                var installAction = await generateResponse(id, ResolveType.Install);
+                var removeAction = await generateResponse(id, ResolveType.Remove);
+                var switchAction = await generateResponse(id, ResolveType.Switch);
+                var unswitchAction = await generateResponse(id, ResolveType.Unswitch);
+                var upgradeAction = await generateResponse(id, ResolveType.Upgrade);
 
                 StringBuilder builder = new StringBuilder();
 
                 SHA256 sha2 = SHA256.Create();
-                builder.AppendLine($"Download = {GetHash(downloadAction, sha2)}");
-                builder.AppendLine($"Install = {GetHash(installAction, sha2)}");
-                builder.AppendLine($"Remove = {GetHash(removeAction, sha2)}");
-                builder.AppendLine($"Switch = {GetHash(switchAction, sha2)}");
-                builder.AppendLine($"Unswitch = {GetHash(unswitchAction, sha2)}");
+                builder.AppendLine($"Download = {getHash(downloadAction, sha2)}");
+                builder.AppendLine($"Install = {getHash(installAction, sha2)}");
+                builder.AppendLine($"Remove = {getHash(removeAction, sha2)}");
+                builder.AppendLine($"Switch = {getHash(switchAction, sha2)}");
+                builder.AppendLine($"Unswitch = {getHash(unswitchAction, sha2)}");
+                builder.AppendLine($"Upgrade = {getHash(upgradeAction, sha2)}");
 
-                var lectureItem = await _context.Lectures.Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
+                var lectureItem = await _context.Lectures.Where(l => l.ID == id).Include(l => l.StorageItems).Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
 
                 foreach (var package in lectureItem.Contents)
                 {
@@ -98,9 +98,9 @@ namespace ULCWebAPI.Controllers
             }
         }
 
-        private static string GetHash(string downloadAction, SHA256 sha2)
+        private static string getHash(string action, SHA256 sha2)
         {
-            byte[] hashBytes = sha2.ComputeHash(Encoding.UTF8.GetBytes(downloadAction));
+            byte[] hashBytes = sha2.ComputeHash(Encoding.UTF8.GetBytes(action));
             return Convert.ToBase64String(hashBytes);
         }
 
@@ -117,7 +117,7 @@ namespace ULCWebAPI.Controllers
             if (!_context.Lectures.Any(l => l.ID == id))
                 return NotFound();
             else
-                return Ok(await GenerateResponse(id, ResolveType.Install));
+                return Ok(await generateResponse(id, ResolveType.Install));
         }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace ULCWebAPI.Controllers
                 return NotFound();
             else
             {
-                var response = await GenerateResponse(id, ResolveType.Download);
+                var response = await generateResponse(id, ResolveType.Download);
                 return Ok(response);
             }
         }
@@ -150,7 +150,7 @@ namespace ULCWebAPI.Controllers
             if (!_context.Lectures.Any(l => l.ID == id))
                 return NotFound();
             else
-                return Ok(await GenerateResponse(id, ResolveType.Remove));
+                return Ok(await generateResponse(id, ResolveType.Remove));
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace ULCWebAPI.Controllers
             if (!_context.Lectures.Any(l => l.ID == id))
                 return NotFound();
             else
-                return Ok(await GenerateResponse(id, ResolveType.Switch));
+                return Ok(await generateResponse(id, ResolveType.Switch));
         }
 
         /// <summary>
@@ -180,10 +180,10 @@ namespace ULCWebAPI.Controllers
             if (!_context.Lectures.Any(l => l.ID == id))
                 return NotFound();
             else
-                return Ok(await GenerateResponse(id, ResolveType.Unswitch));
+                return Ok(await generateResponse(id, ResolveType.Unswitch));
         }
 
-        private async Task<string> GenerateResponse(string id, ResolveType resolveType)
+        private async Task<string> generateResponse(string id, ResolveType resolveType)
         {
             var lectureItem = await _context.Lectures.Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
             var packageListResolved = new List<int>();
@@ -249,6 +249,6 @@ namespace ULCWebAPI.Controllers
         }
 
         [Flags]
-        private enum ResolveType { Install = 1, Download = 2, Remove = 4, Switch = 8, Unswitch = 16 };
+        private enum ResolveType { Install = 1, Download = 2, Remove = 4, Switch = 8, Unswitch = 16, Upgrade = 32 };
     }
 }

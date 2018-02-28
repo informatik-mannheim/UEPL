@@ -20,14 +20,12 @@ namespace ULCWebAPI.Controllers
     /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
-
-#if !DEMO
     [TokenPermissionRequired]
-#endif
     public class AccountController : Controller
     {
         private readonly APIDatabaseContext _context;
         private readonly IAuthenticationService _authenticationService;
+        private readonly int _tokenLifespanInMinutes;
 
         /// <summary>
         /// 
@@ -38,6 +36,11 @@ namespace ULCWebAPI.Controllers
         {
             _context = context;
             _authenticationService = authenticationService;
+#if DEMO
+            _tokenLifespanInMinutes = 1440;
+#else
+            _tokenLifespanInMinutes = 30;
+#endif
         }
 
         /// <summary>
@@ -79,7 +82,7 @@ namespace ULCWebAPI.Controllers
             }
         }
 
-        private LoginToken GenerateOrGetToken(ApplicationUser user)
+        internal LoginToken GenerateOrGetToken(ApplicationUser user)
         {
             var tokens = _context.GetFullTable<LoginToken>();
 
@@ -92,14 +95,14 @@ namespace ULCWebAPI.Controllers
                 else
                 {
                     token.Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-                    token.Valid = DateTime.Now.AddMinutes(30);
+                    token.Valid = DateTime.Now.AddMinutes(_tokenLifespanInMinutes);
                     _context.SaveChanges();
                     return token;
                 }
             }
             else
             {
-                var token = new LoginToken() { Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()), User = user, Valid = DateTime.Now.AddMinutes(30) };
+                var token = new LoginToken() { Token = Convert.ToBase64String(Guid.NewGuid().ToByteArray()), User = user, Valid = DateTime.Now.AddMinutes(_tokenLifespanInMinutes) };
                 _context.Tokens.Add(token);
                 _context.SaveChanges();
                 return token;
@@ -119,7 +122,7 @@ namespace ULCWebAPI.Controllers
             {
                 _context.Tokens.Remove(_context.Tokens.Where((lt) => lt.Token == token).First());
                 _context.SaveChanges();
-                return Content("Logout successful");
+                return Ok("Logout successful");
             }
 
             return BadRequest("No token present");
@@ -129,7 +132,6 @@ namespace ULCWebAPI.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [TokenPermissionRequired]
         [HttpGet("info")]
         public IActionResult GetUserInfo()
         {
@@ -138,7 +140,7 @@ namespace ULCWebAPI.Controllers
             if (loginToken == null)
                 return NotFound("Token not found!");
 
-            return Json(new { user = loginToken.User, valid = loginToken.Valid });
+            return Ok(new { user = loginToken.User, valid = loginToken.Valid });
 
 
         }
@@ -175,7 +177,6 @@ namespace ULCWebAPI.Controllers
         /// 
         /// </summary>
         /// <returns></returns>
-        [TokenPermissionRequired]
         [HttpGet("lecture")]
         public IActionResult GetAllLectures()
         {
@@ -183,14 +184,13 @@ namespace ULCWebAPI.Controllers
             var info = _context.GetLoginToken(token);
             var lectures = info.User.UserLectures;
 
-            return Json(lectures);
+            return Ok(lectures);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        [TokenPermissionRequired]
         [HttpPost("lecture")]
         public IActionResult ConnectLecture([FromBody] string id)
         {
@@ -206,9 +206,9 @@ namespace ULCWebAPI.Controllers
                 return NoContent();
 
             _context.UserLectures.Add(new UserLecture() { LectureID = id, UserID = info.User.ID });
-            _context.SaveChanges();
+            _context.SaveChanges(); 
 
-            return Json(info.User);
+            return Ok(info.User);
         }
 
         /// <summary>
@@ -216,7 +216,6 @@ namespace ULCWebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [TokenPermissionRequired]
         [HttpDelete("lecture")]
         public IActionResult DisconnectLecture([FromBody] string id)
         {
@@ -235,7 +234,7 @@ namespace ULCWebAPI.Controllers
             _context.UserLectures.Remove(lecture);
             _context.SaveChanges();
 
-            return Json(info.User);
+            return Ok(info.User);
         }
 
     }

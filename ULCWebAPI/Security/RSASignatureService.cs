@@ -21,6 +21,20 @@ namespace ULCWebAPI.Security
         /// <summary>
         /// 
         /// </summary>
+        public bool Enabled { get; private set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="enabled"></param>
+        public RSASignatureService(bool enabled = true)
+        {
+            Enabled = enabled;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="filename"></param>
         /// <param name="password"></param>
         public bool LoadCertificate(string filename, string password)

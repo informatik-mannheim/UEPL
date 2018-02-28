@@ -18,7 +18,7 @@ app.disableHardwareAcceleration();
 
 function ab2str(buf) { return String.fromCharCode.apply(null, new Uint8Array(buf)); }
 
-let handleData = (data) => 
+function handleData(data) 
 {  
     if(data.indexOf("|||") != -1)
     {
@@ -40,7 +40,7 @@ let handleData = (data) =>
 
     if(winIPCSender !== null)
         winIPCSender.send(localData[0], localData[1]);
-};
+}
 
 
 
@@ -103,14 +103,14 @@ function createMainWindow()
     win.webContents.openDevTools({ mode: "undocked" });
 
     let loadUri = url.format({ 
-        pathname: path.join(__dirname, "index.html"),
+        pathname: path.join(__dirname, "login.html"),
+        //pathname: path.join(__dirname, "index.html"),
         protocol: 'file:',
         slashes: true
     });
 
     win.setMenuBarVisibility(false);
     win.loadURL(loadUri);
-
     win.on("closed", () => win = null);
 }
 

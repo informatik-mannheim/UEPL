@@ -40,7 +40,12 @@
             }
             else
             {
-                ngToast.create({ className: "danger", content: "Error during login: " + response.statusText });
+                ngToast.create({
+                    className: "danger notification",
+                    dismissOnTimeout: false,
+                    dismissButton: true,
+                    content: "Error during login: " + response.statusText
+                });
             }
 
             $scope.loginButtonDisabled = false;

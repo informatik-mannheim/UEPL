@@ -9,10 +9,17 @@ using System.Threading.Tasks;
 namespace ULCWebAPI.Models
 {
     /// <summary>
-    /// Class to hold context handling informations and scripts, aswell as files
+    /// Versioning artifacts
     /// </summary>
-    public class Artifact : ModelBase<string>
+    public class ArtifactBackup : ModelBase<int>
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        [JsonIgnore]
+        [Required]
+        public Artifact ArtifactRef { get; set; }
+
         /// <summary>
         /// Action to install this artifact
         /// </summary>
@@ -46,12 +53,6 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// Storage items (files) associated with this artifact
         /// </summary>
-        public List<ArtifactStorageItem> StorageItems { get; set; } = new List<ArtifactStorageItem>();
-
-        /// <summary>
-        /// Previous versions
-        /// </summary>
-        [JsonIgnore]
-        public List<ArtifactBackup> Backups { get; set; } = new List<ArtifactBackup>();
+        public List<ArtifactBackupStorageItem> StorageItems { get; set; } = new List<ArtifactBackupStorageItem>();
     }
 }

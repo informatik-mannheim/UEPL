@@ -16,11 +16,8 @@ namespace ULCWebAPI.Controllers
     /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
-
-#if !DEMO
     [TokenPermissionRequired]
     [AllowWithoutToken(new string[] { "GET" })]
-#endif
     public class PackageController : Controller
     {
         private readonly APIDatabaseContext _context;
@@ -99,6 +96,8 @@ namespace ULCWebAPI.Controllers
                 }
             }
 
+            packageItem.Version++;
+
             return Ok(packageItem);
         }
 
@@ -115,7 +114,7 @@ namespace ULCWebAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (!PackageItemExists(id))
+            if (!packageExists(id))
                 return NotFound();
 
             var item = _context.Packages.First(pi => pi.ID == id);
@@ -124,6 +123,7 @@ namespace ULCWebAPI.Controllers
             {
                 item.Name = packageItem.Name ?? item.Name;
                 item.ArtifactRefID = packageItem.ArtifactRefID ?? item.ArtifactRefID;
+                item.Version++;
 
                 _context.Update(item);
                 await _context.SaveChangesAsync();
@@ -168,8 +168,8 @@ namespace ULCWebAPI.Controllers
                     package.Dependencies.Add(depPack);
             }
 
+            package.Version++;
             await _context.SaveChangesAsync();
-
             return AcceptedAtAction(nameof(GetPackageItem), new { id = package.ID }, package);
         }
 
@@ -220,6 +220,6 @@ namespace ULCWebAPI.Controllers
             return Ok(packageItem);
         }
 
-        private bool PackageItemExists(int id) { return _context.Packages.Any(e => e.ID == id); }
+        private bool packageExists(int id) => _context.Packages.Any(e => e.ID == id);
     }
 }

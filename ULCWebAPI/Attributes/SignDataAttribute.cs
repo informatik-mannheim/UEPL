@@ -46,6 +46,9 @@ namespace ULCWebAPI.Attributes
         {
             var signatureService = context.HttpContext.RequestServices.GetService(typeof(ISignatureService)) as ISignatureService;
 
+            if (signatureService == null || !signatureService.Enabled)
+                return;
+
             var result = context.Result as OkObjectResult;
 
             if (result == null)

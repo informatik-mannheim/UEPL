@@ -33,6 +33,11 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// 
         /// </summary>
+        public int Version { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public List<ArtifactStorageResponse> StorageItems { get; set; }
     }
 }

@@ -28,6 +28,8 @@ namespace ULCWebAPI.Security
         {
             _config = config;
             _connection = new LdapConnection { SecureSocketLayer = _config.UseSSL };
+
+            ApplicationUser.adminType = config.AdminEmployeeType;
         }
 
         /// <summary>
@@ -86,7 +88,7 @@ namespace ULCWebAPI.Security
                 ApplicationUser ldapUser = null;
 
                 if(_connection.Bound)
-                    ldapUser = new ApplicationUser { UserName = username, DisplayName = displayName, LdapID = uidNumber, EmployeeType = employeeType, Email = mail };
+                    ldapUser = new ApplicationUser { UserName = username, DisplayName = displayName, EmployeeType = employeeType, Email = mail };
 
                 Tracer.TraceMessage($"Got user informations from ldap: {ldapUser}");
 

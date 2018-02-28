@@ -49,7 +49,14 @@ namespace ULCWebAPI
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+            services.AddAntiforgery(options =>
+            {
+                options.Cookie.Name = "_af";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.HeaderName = "X-XSRF-TOKEN";
+            });
+
             services.AddMvc();
             services.Configure<FormOptions>(config =>
             {
@@ -70,32 +77,34 @@ namespace ULCWebAPI
 
             services.AddCors(options => options.AddPolicy("Automatic", builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
             services.AddSingleton(Environment);
-
             
 #if !DEMO
             LdapConfig conf = new LdapConfig();
             Configuration.Bind("ldap_auth", conf);
+            
+            services.AddScoped<IAuthenticationService>((service) => new LdapAuthenticationService(conf));
+#else
+            services.AddScoped<IAuthenticationService>((a) => new SimpleAuthenticationService());
+#endif
 
             var signatureSection = Configuration.GetSection("SignatureService");
             var certFile = "";
             var certFilePassword = "";
+            var signatureEnabled = false;
 
             if (signatureSection != null)
             {
-                certFile = signatureSection["Certificate"];
-                certFilePassword = signatureSection["Password"];
+                signatureEnabled = signatureSection.GetValue("Enabled", false);
+                certFile = signatureSection.GetValue("Certificate", string.Empty);
+                certFilePassword = signatureSection.GetValue("Password", string.Empty);
+
+                services.AddSingleton<ISignatureService>((service) =>
+                {
+                    var rsaSignatureService = new RSASignatureService(signatureEnabled);
+                    rsaSignatureService.LoadCertificate(certFile, certFilePassword);
+                    return rsaSignatureService;
+                });
             }
-            
-            services.AddScoped<IAuthenticationService>((service) => new LdapAuthenticationService(conf));
-            services.AddSingleton<ISignatureService>((service) =>
-            {
-                var rsaSignatureService = new RSASignatureService();
-                rsaSignatureService.LoadCertificate(certFile, certFilePassword);
-                return rsaSignatureService;
-            });
-#else
-            services.AddScoped<IAuthenticationService>((a) => new SimpleAuthenticationService());
-#endif
 
             services.AddRouting(/*options => options.LowercaseUrls = true*/);
             services.AddDbContext<APIDatabaseContext>(ServiceLifetime.Scoped);

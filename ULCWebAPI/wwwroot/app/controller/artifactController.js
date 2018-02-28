@@ -126,6 +126,20 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
         });
     };
 
+    $scope.removeStorageFile = (storageFile) =>
+    {
+        $http.delete(storageFile.url).then(result => { $window.location.reload(); }, error =>
+        {
+            $location.path("/login");
+        });
+    };
+
+    $scope.cancel = (artifact) => 
+    {
+        console.log("cancel called!");
+        Artifact.delete({ id: artifact.id }, refresh);
+    };
+
     $scope.save = () => 
     {
         saveButton.disabled = true;
@@ -144,18 +158,5 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
                 dismissButton: true
             });
         });
-    };
-
-    $scope.removeStorageFile = (storageFile) =>
-    {
-        $http.delete(storageFile.url).then(result => { $window.location.reload(); }, error =>
-        {
-            $location.path("/login");
-        });
-    };
-
-    $scope.cancel = (artifact) => 
-    {
-        Artifact.delete({ id: artifact.id }, refresh);
     };
 });

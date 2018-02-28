@@ -22,6 +22,11 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// 
         /// </summary>
+        public ICollection<LectureStorageItem> StorageItems { get; set; } = new List<LectureStorageItem>();
+
+        /// <summary>
+        /// 
+        /// </summary>
         [JsonIgnore]
         public ICollection<UserLecture> UserLectures { get; internal set; } = new List<UserLecture>();
 

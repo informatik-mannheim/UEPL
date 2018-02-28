@@ -115,8 +115,8 @@ table th, table td
 
 .notification 
 {
-    background: #046f12 !important;
-    color: antiquewhite !important;
+    /*background: #046f12 !important;*/
+    /*color: antiquewhite !important;*/
     font-size: xx-large;
 }
 

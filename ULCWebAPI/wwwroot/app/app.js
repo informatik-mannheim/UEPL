@@ -45,7 +45,8 @@ app.config(["$routeProvider", "$locationProvider", "$resourceProvider", 'ngToast
 
     ngToastProvider.configure({
         animation: 'fade', // or 'slide'
-        verticalPosition: "bottom"
+        verticalPosition: "bottom",
+        timeout: 10000
     });
 }]);
 

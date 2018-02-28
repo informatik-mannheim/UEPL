@@ -195,7 +195,6 @@ ClientBin/
 *~
 *.dbmdl
 *.dbproj.schemaview
-*.pfx
 *.publishsettings
 node_modules/
 orleans.codegen.cs
@@ -257,4 +256,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
-/ProjectAPI/storage/apache2-1.0.0-x64
+**/storage/
+ULCDesktopClient/lib/jquery/
+ULCDesktopClient/lib/jquery-toast-plugin/

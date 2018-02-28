@@ -16,6 +16,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using IOF = System.IO.File;
 
+using static ULCWebAPI.Helper.FileHelper;
+
 namespace ULCWebAPI.Controllers
 {
     /// <summary>
@@ -23,11 +25,8 @@ namespace ULCWebAPI.Controllers
     /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
-
-#if !DEMO
     [TokenPermissionRequired]
     [AllowWithoutToken(new string[] { "GET" })]
-#endif
     public class ArtifactController : Controller
     {
         private readonly APIDatabaseContext _context;
@@ -46,7 +45,7 @@ namespace ULCWebAPI.Controllers
             _defaultFormOptions = formOptions.Value;
             _context = context;
             _environment = environment;
-            _storagePath = Path.Combine(_environment.ContentRootPath, "storage");
+            _storagePath = Path.Combine(_environment.ContentRootPath, "storage", "artifacts");
         }
 
         // GET: api/Artifacts
@@ -55,7 +54,6 @@ namespace ULCWebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [AllowWithoutToken]
         public IActionResult GetArtifacts()
         {
             return Ok(_context.Artifacts.Select((art) => new { id = art.ID, url = this.FullURL(nameof(GetArtifact), new { id = art.ID }) }));
@@ -71,7 +69,7 @@ namespace ULCWebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetArtifact([FromRoute] string id)
+        public async Task<IActionResult> GetArtifact([FromRoute] string id, [FromQuery] int version)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -95,6 +93,7 @@ namespace ULCWebAPI.Controllers
                 RemoveAction = artifact.RemoveAction,
                 SwitchAction = artifact.SwitchAction,
                 UnswitchAction = artifact.UnswitchAction,
+                Version = artifact.Version,
                 StorageItems = new List<ArtifactStorageResponse>()
             };
 
@@ -103,7 +102,7 @@ namespace ULCWebAPI.Controllers
                 ar.StorageItems.Add(new ArtifactStorageResponse
                 {
                     FileName = item.Filename,
-                    Url = this.FullURL(nameof(DownloadArtifact), new { id = id, filename = item.Filename })
+                    Url = this.FullURL(nameof(DownloadArtifact), new { id, filename = item.Filename })
                 });
             });
 
@@ -121,17 +120,23 @@ namespace ULCWebAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (!ArtifactExists(artifact.ID))
+            else if (!artifactExists(artifact.ID))
                 return NotFound($"Artifact with id {artifact.ID} not found!");
 
             var toChange = _context.Artifacts.Single(ar => ar.ID == artifact.ID);
 
             try
             {
+                var backup = generateBackup(toChange);
+                _context.ArtifactsBackup.Add(backup);
+
                 toChange.InstallAction = string.IsNullOrWhiteSpace(artifact.InstallAction) ? toChange.InstallAction : artifact.InstallAction;
                 toChange.RemoveAction = string.IsNullOrWhiteSpace(artifact.RemoveAction) ? toChange.RemoveAction : artifact.RemoveAction;
                 toChange.SwitchAction = string.IsNullOrWhiteSpace(artifact.SwitchAction) ? toChange.SwitchAction : artifact.SwitchAction;
                 toChange.UnswitchAction = string.IsNullOrWhiteSpace(artifact.UnswitchAction) ? toChange.UnswitchAction : artifact.UnswitchAction;
+                toChange.UpgradeAction = string.IsNullOrWhiteSpace(artifact.UpgradeAction) ? toChange.UpgradeAction : artifact.UpgradeAction;
+
+                toChange.Version++;
 
                 _context.Artifacts.Update(toChange);
                 await _context.SaveChangesAsync();
@@ -141,7 +146,7 @@ namespace ULCWebAPI.Controllers
                 throw;
             }
 
-            return Ok();
+            return Ok(toChange);
         }
 
         // POST: api/Artifacts
@@ -168,64 +173,102 @@ namespace ULCWebAPI.Controllers
         /// 
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="version"></param>
         /// <returns></returns>
         [HttpGet("{id}/file")]
-        public IActionResult ListFiles([FromRoute] string id)
+        public IActionResult ListFiles([FromRoute] string id, [FromQuery] int version)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (!ArtifactExists(id))
+            else if (!artifactExists(id))
                 return NotFound(id);
+        
+            var artifact = _context.GetFullTable<Artifact>().Single(ar => ar.ID == id);
 
-            var artifact = _context.Artifacts.Include(asi => asi.StorageItems).Where(ar => ar.ID == id).Single();
-            var storageItems = artifact.StorageItems ?? new List<ArtifactStorageItem>();
-
-            var data = new { Artifact = artifact.ID, Files = new List<dynamic>(), _self = this.FullURL(nameof(ListFiles), new { id = id }) };
-
-            foreach(var item in storageItems)
+            if (artifact.Version > version)
             {
-                data.Files.Add(new
-                {
-                    Filename = item.Filename,
-                    Url = this.FullURL(nameof(DownloadArtifact), new { id = id, filename = item.Filename })
-                });
-            }
+                var artifactBackup = artifact.Backups.SingleOrDefault(ab => ab.Version == version);
+                var data = new { Artifact = artifact.ID, Files = new List<ArtifactStorageResponse>(), _self = this.FullURL(nameof(ListFiles), new { id, version }) };
 
-            return Ok(data);
+                if (artifactBackup == null)
+                    return NotFound("Version {version} is not stored on the server.");
+
+                foreach(var item in artifactBackup.StorageItems)
+                {
+                    data.Files.Add(new ArtifactStorageResponse
+                    {
+                        FileName = item.Filename,
+                        Url = this.FullURL(nameof(DownloadArtifact), new { id, version, filename = item.Filename})
+                    });
+                }
+
+                return Ok(data);
+            }
+            else
+            {
+                var data = new { Artifact = artifact.ID, Files = new List<ArtifactStorageResponse>(), _self = this.FullURL(nameof(ListFiles), new { id }) };
+
+                foreach (var item in artifact.StorageItems)
+                {
+                    data.Files.Add(new ArtifactStorageResponse
+                    {
+                        FileName = item.Filename,
+                        Url = this.FullURL(nameof(DownloadArtifact), new { id, filename = item.Filename })
+                    });
+                }
+
+                return Ok(data);
+            }
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="version"></param>
         /// <param name="filename"></param>
         /// <returns></returns>
         [HttpGet("{id}/file/{filename}")]
-        public IActionResult DownloadArtifact([FromRoute] string id, [FromRoute] string filename)
+        public IActionResult DownloadArtifact([FromRoute] string id, [FromRoute] string filename, [FromQuery] int version)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (!ArtifactExists(id))
+            else if (!artifactExists(id))
                 return NotFound(id);
 
-            var artifact = _context.Artifacts.Include(asi => asi.StorageItems).Single(ar => ar.ID == id);
+            var artifact = _context.GetFullTable<Artifact>().Single(ar => ar.ID == id);
+            string filePath = string.Empty;
 
-            if (artifact.StorageItems?.Count == 0)
-                return NotFound(filename);
+            if (artifact.Version > version)
+            {
+                var backup = artifact.Backups.SingleOrDefault(abi => abi.Version == version);
+                var backupFileName = $"{filename}.v{backup.Version}";
+                var backupFilePath = Path.Combine(_storagePath, artifact.ID, backupFileName);
+                var backupFile = backup?.StorageItems?.SingleOrDefault(absi => absi.Filename == backupFileName);
 
-            var file = artifact.StorageItems?.SingleOrDefault(asi => asi.Filename == filename);
-
-            if (file == null)
-                return NotFound(filename);
+                if (backupFile == null)
+                    return NotFound($"{filename} with version {version}");
+                else
+                {
+                    filePath = backupFilePath;       
+                }
+            }
             else
             {
-                var filePath = Path.Combine(_storagePath, artifact.ID, file.Filename);
+                var file = artifact.StorageItems?.SingleOrDefault(asi => asi.Filename == filename);
 
-                if (!IOF.Exists(filePath))
-                    return NotFound("File does not exist on server!");
+                if (file == null)
+                    return NotFound(filename);
                 else
-                    return File(IOF.ReadAllBytes(filePath), "application/octet-stream");
+                {
+                    filePath = Path.Combine(_storagePath, artifact.ID, file.Filename);
+                }
             }
+
+            if (!IOF.Exists(filePath))
+                return NotFound("File does not exist on server!");
+
+            return File(IOF.ReadAllBytes(filePath), "application/octet-stream", filename);
         }
 
         /// <summary>
@@ -239,7 +282,7 @@ namespace ULCWebAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (!ArtifactExists(id))
+            else if (!artifactExists(id))
                 return NotFound();
 
             long size = 0;
@@ -297,20 +340,6 @@ namespace ULCWebAPI.Controllers
             return Ok(size);
         }
 
-        private static string ComputeHash(System.Security.Cryptography.SHA256 sha2, string filename)
-        {
-            string hashValue;
-            using (FileStream fs = new FileStream(filename, FileMode.Open))
-            {
-                var byteHash = sha2.ComputeHash(fs);
-                var stringHash = Convert.ToBase64String(byteHash);
-                var stringHash2 = new String(System.Text.Encoding.UTF8.GetChars(byteHash));
-                hashValue = stringHash;
-            }
-
-            return hashValue;
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -322,7 +351,7 @@ namespace ULCWebAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            else if (!ArtifactExists(id))
+            else if (!artifactExists(id))
                 return NotFound(id);
 
             var artifact = _context.Artifacts.Include(asi => asi.StorageItems).Single(ar => ar.ID == id);
@@ -342,10 +371,22 @@ namespace ULCWebAPI.Controllers
                     return NotFound("File does not exist on server!");
                 else
                 {
-                    // Remove File
-                    IOF.Delete(filePath);
+                    // Move the File (Versioning)
+                    var newFileName = $"{filename}.v{artifact.Version}";
+                    var newFilePath = $"{filePath}.v{artifact.Version}";
+                    IOF.Move(filePath, newFilePath);
+
                     // Remove Entries in StorageItems DB
                     artifact.StorageItems?.Remove(file);
+
+                    // Generate backup entry
+                    file.Filename = newFileName;
+                    _context.ArtifactsBackup.Add(generateBackup(artifact, file));
+
+                    // Increase the latest version of the artifact
+                    artifact.Version++;
+                    _context.Artifacts.Update(artifact);
+                    
                     await _context.SaveChangesAsync();
                     return Ok();
                 }
@@ -375,9 +416,52 @@ namespace ULCWebAPI.Controllers
             return Ok(artifact);
         }
 
-        private bool ArtifactExists(string id)
+        private bool artifactExists(string id)
         {
             return _context.Artifacts.Any(e => e.ID == id);
+        }
+
+        private ArtifactBackup generateBackup(Artifact artifact)
+        {
+            var backup = new ArtifactBackup()
+            {
+                ArtifactRef = artifact,
+                Version = artifact.Version,
+                InstallAction = artifact.InstallAction,
+                RemoveAction = artifact.RemoveAction,
+                SwitchAction = artifact.SwitchAction,
+                UnswitchAction = artifact.UnswitchAction,
+                UpgradeAction = artifact.UpgradeAction,
+                StorageItems = new List<ArtifactBackupStorageItem>()
+            };
+
+            foreach(var item in artifact.StorageItems)
+            {
+                backup.StorageItems.Add(new ArtifactBackupStorageItem()
+                {
+                    ArtifactBackupRef = backup,
+                    Filename = item.Filename,
+                    Hash = item.Hash,
+                    Version = item.Version
+                });
+            }
+
+            return backup;
+        }
+
+        private ArtifactBackup generateBackup(Artifact artifact, ArtifactStorageItem file)
+        {
+            var backup = generateBackup(artifact);
+
+            backup.StorageItems.Add(new ArtifactBackupStorageItem()
+            {
+                ArtifactBackupRef = backup,
+                Filename = file.Filename,
+                Hash = file.Hash,
+                Version = file.Version
+            });
+
+            return backup;
         }
     }
 }

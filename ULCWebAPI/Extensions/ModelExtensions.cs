@@ -51,19 +51,36 @@ namespace ULCWebAPI.Extensions
             switch(genericTableType.Name)
             {
                 case "Lecture":
-                    return (IQueryable<T>)_context.Lectures.Include(l => l.Contents).Include(l => l.UserLectures).ThenInclude(ul => ul.User);
+                    return (IQueryable<T>)_context.Lectures
+                            .Include(l => l.Contents)
+                            .ThenInclude(p => p.Dependencies)
+                            .Include(l => l.StorageItems)
+                            .ThenInclude(lsi => lsi.LectureRef)
+                            .Include(l => l.UserLectures)
+                            .ThenInclude(ul => ul.User);
 
                 case "Package":
                     return (IQueryable<T>)_context.Packages.Include(p => p.Dependencies);
 
                 case "Artifact":
-                    return (IQueryable<T>)_context.Artifacts.Include(a => a.StorageItems);
+                    return (IQueryable<T>)_context.Artifacts
+                            .Include(a => a.StorageItems)
+                            .ThenInclude(asi => asi.ArtifactRef)
+                            .Include(a => a.Backups)
+                            .ThenInclude(ab => ab.StorageItems)
+                            .ThenInclude(absi => absi.ArtifactBackupRef)
+                            .ThenInclude(ab => ab.ArtifactRef);
 
                 case "ApplicationUser":
-                    return (IQueryable<T>)_context.Users.Include(u => u.UserLectures).ThenInclude(ul => ul.Lecture);
+                    return (IQueryable<T>)_context.Users
+                            .Include(u => u.UserLectures)
+                            .ThenInclude(ul => ul.Lecture);
 
                 case "LoginToken":
-                    return (IQueryable<T>)_context.Tokens.Include(lt => lt.User).ThenInclude(user => user.UserLectures).ThenInclude(ul => ul.Lecture);
+                    return (IQueryable<T>)_context.Tokens
+                            .Include(lt => lt.User)
+                            .ThenInclude(user => user.UserLectures)
+                            .ThenInclude(ul => ul.Lecture);
                 default:
                     return default(IQueryable<T>);
             }

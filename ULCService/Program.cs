@@ -30,7 +30,7 @@ namespace ProjectClient
         public const string PROJECT_NAME = "ProjectClient";
         public const char CMD_SEPARATOR = '|';
 
-        static bool     started = true, quit, verbose = true;
+        static bool     started = true, quit, verbose = true, enableSignatureService = false;
         static int      tries = 0, ipcPort = 10050;
         static string   context = string.Empty, activeContext = context,
                         protocol = "http", host = "localhost:10000",
@@ -102,7 +102,7 @@ namespace ProjectClient
             return Task.Run((Action)AcceptAndHandleClients);
         }
 
-        private static void InitSignatureService()
+        internal static void InitSignatureService()
         {
             var pubcert = new X509Certificate2(certFile, certPassword);
             rsa = pubcert.GetRSAPublicKey();
@@ -124,7 +124,7 @@ namespace ProjectClient
                 if (File.Exists(metadataFile))
                     contexts.Add(Context.Parse(File.ReadAllText(metadataFile)));
                 else
-                    contexts.Add(new Context(false, false, false, string.Empty, Path.GetFileName(repo)));
+                    contexts.Add(new Context(id: Path.GetFileName(repo)));
             }
 
             contexts.ForEach(ctx => Log($"Context {ctx.ID} with values (installed:{ctx.Installed}) (active:{ctx.Active}) (downloaded:{ctx.Downloaded})"));
@@ -139,6 +139,7 @@ namespace ProjectClient
             resourcePath = config[nameof(resourcePath)];
             resourceInfoPath = config[nameof(resourceInfoPath)];
             int.TryParse(config[nameof(ipcPort)], out ipcPort);
+            bool.TryParse(config[nameof(enableSignatureService)], out enableSignatureService);
             certFile = config[nameof(certFile)];
             certPassword = config[nameof(certPassword)];
 
@@ -150,7 +151,8 @@ namespace ProjectClient
             processInfo.RedirectStandardError = true;
             processInfo.CreateNoWindow = true;
 
-            InitSignatureService();
+            if(enableSignatureService)
+                InitSignatureService();
         }
 
         static void ServiceMain()
@@ -172,7 +174,7 @@ namespace ProjectClient
                 }
                 else if(actualCommand != ContextCommand.NONE)
                 {
-                    Log("main loop");
+                    Log("Main loop");
 
                     if (tries > 0 && tries < 5)
                     {
@@ -180,32 +182,33 @@ namespace ProjectClient
                     }
                     else if (tries >= 5)
                     {
-                        // TODO: go back to previous working context
-                        
-                        Log("Semi wait...");
-
-                        commandReceivedEvent.Wait();
-                        commandReceivedEvent.Reset();
-
-                        Log("Semi unwait...");
-
-                        continue;
+                        actualCommand = ContextCommand.NONE; // failed
                     }
                     else
                         Log("New context: " + context);
 
                     SendProgressEvent(ProgressEvent.Begin, context);
-                    ExecuteRestRequest(actualCommand).Wait();
+
+                    // Download files before install command is executed
+                    var ctx = contexts.Find(c => c.ID == context);
+
+                    if (actualCommand == ContextCommand.Install && (ctx == null || !ctx.Downloaded))
+                    {
+                        ExecuteScriptFileForCommand(ContextCommand.Download).Wait();
+                        actualCommand = ContextCommand.Install;
+                    }
+
+                    ExecuteScriptFileForCommand(actualCommand).Wait();
                 }
             }
 
             Log("Service stopped!");
         }
 
-        private static async Task ExecuteRestRequest(ContextCommand command, bool automatic = false)
+        internal static async Task ExecuteScriptFileForCommand(ContextCommand command, bool automatic = false)
         {
             if(command == ContextCommand.Switch && activeContext != "NONE" && !string.IsNullOrWhiteSpace(activeContext) && activeContext != context)
-                await ExecuteRestRequest(ContextCommand.Unswitch, true);
+                await ExecuteScriptFileForCommand(ContextCommand.Unswitch, true);
 
             var cmdName = Context.Commands[(int)command];
             var usedContext = automatic ? activeContext : context;
@@ -240,12 +243,16 @@ namespace ProjectClient
                     return;
                 }
 
-                var verified = VerifySignature(res);
-
-                if(!verified)
+                if(enableSignatureService)
                 {
-                    tries = 3;
-                    Log($"Script file are not properly signed by the server!");
+                    var verified = VerifySignature(res);
+
+                    if (!verified)
+                    {
+                        tries = 5;
+                        Log($"Script file are not properly signed by the server!");
+                        return;
+                    }
                 }
 
                 if (!File.Exists(commandFilePath) || !File.ReadAllText(commandFilePath).Contains(script))
@@ -274,7 +281,7 @@ namespace ProjectClient
             }
         }
 
-        private static int ExecuteScript(ContextCommand command, string commandFilePath)
+        internal static int ExecuteScript(ContextCommand command, string commandFilePath)
         {
             Log("Executing script file: " + commandFilePath);
             SendProgressEvent(ProgressEvent.Report, $"Executing Script '{command}'...");
@@ -320,7 +327,7 @@ namespace ProjectClient
             return proc.ExitCode;
         }
 
-        private static bool VerifySignature(RestResponse res)
+        internal static bool VerifySignature(RestResponse res)
         {
             byte[] signature = null;
 
@@ -347,7 +354,7 @@ namespace ProjectClient
             return verified;
         }
 
-        private static void WriteScriptFile(string commandFilePath, string script)
+        internal static void WriteScriptFile(string commandFilePath, string script)
         {
             if (OSVersion.Platform == PlatformID.Unix)
                 File.WriteAllText(commandFilePath, @"#!/bin/bash" + NewLine + script + NewLine + "exit $?;");
@@ -355,26 +362,33 @@ namespace ProjectClient
                 File.WriteAllText(commandFilePath, script + NewLine + @"exit /b %errorlevel%");
         }
 
-        static void SendProgressEvent(ProgressEvent evt, string arg)
+        internal static bool SendProgressEvent(ProgressEvent evt, string arg)
         {
+            bool sent = false;
+
             switch (evt)
             {
                 case ProgressEvent.Begin:
-                    tcpClient.SendStatusMessage("progress-event-begin", arg);
+                    sent = tcpClient.SendChannelMessage("progress-event-begin", arg);
                     break;
                 case ProgressEvent.Report:
-                    tcpClient.SendStatusMessage("progress-event-report", arg);
+                    sent = tcpClient.SendChannelMessage("progress-event-report", arg);
                     break;
                 case ProgressEvent.End:
-                    tcpClient.SendStatusMessage("progress-event-end", arg);
+                    sent = tcpClient.SendChannelMessage("progress-event-end", arg);
                     break;
 
                 default:
                     break;
             }
+
+            if (!sent)
+                Log($"Status {evt} was NOT sent over tcp socket...");
+
+            return sent;
         }
 
-        static void SetContextState(ContextCommand command, string context)
+        internal static void SetContextState(ContextCommand command, string context)
         {
             Log($"Context-State-Set: {context} => {command}");
 
@@ -382,7 +396,7 @@ namespace ProjectClient
 
             if (contextInCollection == null && !(command == ContextCommand.Download || command == ContextCommand.Install))
                 return;
-            else if(context != "NONE")
+            else if(contextInCollection == null && context != "NONE")
             {
                 contextInCollection = new Context();
                 contextInCollection.ID = context;
@@ -393,45 +407,45 @@ namespace ProjectClient
             {
                 case ContextCommand.NONE:
                     contextInCollection.Downloaded = contextInCollection.Active = contextInCollection.Installed = false;
-                    tcpClient.SendStatusMessage("set-context-state", $"cleaned:{context}");
+                    tcpClient.SendChannelMessage("set-context-state", $"cleaned:{context}");
                     config[nameof(activeContext)] = activeContext = context = "NONE";
                     break;
                 case ContextCommand.Download:
                     contextInCollection.Downloaded = true;
-                    tcpClient.SendStatusMessage("set-context-state", $"downloaded:{context}");
+                    tcpClient.SendChannelMessage("set-context-state", $"downloaded:{context}");
                     break;
                 case ContextCommand.Install:
                     contextInCollection.Installed = true;
-                    tcpClient.SendStatusMessage("set-context-state", $"installed:{context}");
+                    tcpClient.SendChannelMessage("set-context-state", $"installed:{context}");
                     break;
                 case ContextCommand.Switch:
                     config[nameof(activeContext)] = activeContext = context;
                     contexts.ForEach(ctx => ctx.Active = false);
                     contextInCollection.Active = true;
-                    tcpClient.SendStatusMessage("set-context-state", $"active:{context}");
+                    tcpClient.SendChannelMessage("set-context-state", $"active:{context}");
                     break;
                 case ContextCommand.Unswitch:
                     activeContext = "NONE";
                     contextInCollection.Active = false;
-                    tcpClient.SendStatusMessage("set-context-state", $"deactive:{context}");
+                    tcpClient.SendChannelMessage("set-context-state", $"deactive:{context}");
                     break;
                 case ContextCommand.Remove:
                     contextInCollection.Installed = false;
-                    tcpClient.SendStatusMessage("set-context-state", $"removed:{context}");
+                    tcpClient.SendChannelMessage("set-context-state", $"removed:{context}");
                     break;
                 default:
                     break;
             }
         }
 
-        static void UpdateClient()
+        internal static void UpdateClient()
         {
-            var combination = $"{protocol}://{host}";
-            restClient = new RestClient(combination);
-            Log($"Changed RestClient: {combination}");
+            var uri = $"{protocol}://{host}";
+            restClient = new RestClient(uri);
+            Log($"Changed RestClient: {uri}");
         }
 
-        static void IPCMessageReceived(string message)
+        internal static void IPCMessageReceived(string message)
         {
             Log("Message Received: " + message);
 
@@ -491,11 +505,11 @@ namespace ProjectClient
                     return;
 
                 case "getcontext":
-                    tcpClient.SendStatusMessage("active-context", activeContext);
+                    tcpClient.SendChannelMessage("active-context", activeContext);
                     return;
 
                 case "getcontextdata":
-                    tcpClient.SendStatusMessage("all-context-data", Newtonsoft.Json.JsonConvert.SerializeObject(contexts.ToArray()));
+                    tcpClient.SendChannelMessage("all-context-data", Newtonsoft.Json.JsonConvert.SerializeObject(contexts.ToArray()));
                     return;
 
                 case "acontext":
@@ -544,7 +558,7 @@ namespace ProjectClient
             commandReceivedEvent.Set();
         }
 
-        static void AcceptAndHandleClients()
+        internal static void AcceptAndHandleClients()
         {
             while(!quit)
             {

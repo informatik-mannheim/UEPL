@@ -9,6 +9,8 @@ namespace ULCWebAPI.Security
 {
     interface ISignatureService
     {
+        bool Enabled { get; }
+
         bool LoadCertificate(string filename, string password);
 
         byte[] SignData(byte[] data, HashAlgorithmName hashAlgorithmName);

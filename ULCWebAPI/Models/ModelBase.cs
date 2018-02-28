@@ -18,5 +18,10 @@ namespace ULCWebAPI.Models
         /// </summary>
         [Key, Required]
         public T ID { get; set; }
+
+        /// <summary>
+        /// Versioning
+        /// </summary>
+        public int Version { get; set; }
     }
 }

@@ -38,5 +38,10 @@ namespace ULCWebAPI.Security
         /// 
         /// </summary>
         public string SearchFilter { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string AdminEmployeeType { get; set; }
     }
 }

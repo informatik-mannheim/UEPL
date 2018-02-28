@@ -1,14 +1,16 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace ProjectClient
 {
+    [Serializable]
     public class Context
     {
         [JsonIgnore]
-        public static string[] Commands = new string[] {"download", "install", "switch", "unswitch", "remove"};
+        public static string[] Commands = new string[] {"download", "install", "switch", "unswitch", "remove", "upgrade", "meta"};
 
         public bool Active = false, Installed = false, Downloaded = false;
         public string Name = string.Empty, ID = string.Empty;
@@ -50,6 +52,21 @@ namespace ProjectClient
             }
         }
 
+        public static Context Load(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                string fileContent = File.ReadAllText(fileName);
+
+                if (TryParse(fileContent, out Context context))
+                    return context;
+                else
+                    throw new JsonSerializationException($"File {fileName} could not be parsed!");
+            }
+            else
+                throw new FileNotFoundException("File does not exist.", fileName);
+        }
+
         public void Save(string fileName)
         {
             string content = JsonConvert.SerializeObject(this);
@@ -57,5 +74,5 @@ namespace ProjectClient
         }
     }
 
-    public enum ContextCommand { NONE = -1, Download = 0, Install = 1, Switch = 2, Unswitch = 3, Remove = 4 };
+    public enum ContextCommand { NONE = -1, Download = 0, Install = 1, Switch = 2, Unswitch = 3, Remove = 4, Upgrade = 5, Meta = 6 };
 }

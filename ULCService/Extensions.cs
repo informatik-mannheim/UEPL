@@ -46,7 +46,7 @@ namespace ProjectClient
                 return false;
         }
 
-        public static bool SendStatusMessage(this TcpClient client, string channel, string status)
+        public static bool SendChannelMessage(this TcpClient client, string channel, string status)
         {
             return client.SendMessage($"{channel}|{status}");
         }
@@ -69,10 +69,8 @@ namespace ProjectClient
 
         public static void Log(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0, bool ignoreVerbose = false)
         {
-#if DEBUG
             if(VERBOSE || ignoreVerbose)
                 Console.WriteLine($"[{Assembly.GetEntryAssembly().GetName().Name}:{Path.GetFileName(sourceFilePath)}@{sourceLineNumber}]: {message}");
-#endif
         }
     }
 }

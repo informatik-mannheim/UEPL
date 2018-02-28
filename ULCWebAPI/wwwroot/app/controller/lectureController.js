@@ -28,17 +28,23 @@ app.controller("lectureController", ($scope, $resource, $location, $routeParams,
 
 app.controller("lectureDetailController", ($scope, $http, $routeParams, $q, Lecture, Package, Config, ngToast) =>
 {
-    $scope.lecture = {"content": []};
+    $scope.lecture =
+    {
+        "content": [],
+        "storage": { "files": [] }
+    };
+
     $scope.packages = [];
     $scope.dirty = false;
 
     let refresh = () =>
     {
-        return $q.all([Package.query().$promise, Lecture.get({id: $routeParams.id}).$promise])
+        return $q.all([Package.query().$promise, Lecture.get({ id: $routeParams.id }).$promise, $http.get(Config.API + "lecture/" + $routeParams.id + "/file/")])
         .then((result) => 
         {
             $scope.packages = result[0];
             $scope.lecture = result[1];
+            $scope.files = result[2].data;
 
             for(var i = 0; i < $scope.lecture.content.length; i++)
                 changeSelection($scope.lecture.content[i].artifactRefID, true);
@@ -75,6 +81,60 @@ app.controller("lectureDetailController", ($scope, $http, $routeParams, $q, Lect
                 content: "Data saved...",
                 dismissButton: true
             }));
+    };
+
+    $scope.uploadFiles = () =>
+    {
+        let fileUpload = $("#files").get(0);
+        let files = fileUpload.files;
+
+        let data = new FormData();
+
+        for (let i = 0; i < files.length; i++)
+            data.append(files[i].name, files[i]);
+
+        $http({
+            method: "POST",
+            url: Config.API + "lecture/" + $scope.lecture.id + "/file",
+            transformRequest: angular.identity,
+            headers: { "Content-Type": undefined },
+            data: data
+        }).then(response =>
+        {
+            ngToast.create({
+                className: "info notification",
+                content: "Upload complete!",
+                dismissButton: true
+            });
+
+        }).catch(error => 
+        {
+            if (error.status === 403 || error.status === 401)
+            {
+                ngToast.create({
+                    className: "danger notification",
+                    content: "Upload Error: Token isn't valid",
+                    dismissButton: true
+                });
+
+                $location.path("/login");
+            }
+            else
+            {
+                ngToast.create({
+                    className: "danger notification",
+                    content: "Upload Error: " + error.statusText,
+                    dismissButton: true
+                });
+            }
+        });
+    };
+
+    $scope.removeStorageFile = (storageFile) =>
+    {
+        $http.delete(storageFile.url)
+             .then(result => { $window.location.reload(); })
+             .catch(error => { $location.path("/login");  });
     };
 
     let changeSelection = (name, val) => 

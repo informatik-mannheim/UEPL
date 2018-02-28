@@ -66,8 +66,8 @@ ipc.on("service-status", (event, ...args) =>
 {
     if(args.length !== undefined && args.length == 2)
     {
-        console.log(args[0]);
-        console.log(args[1]);
+        // args[0] = owncloud, args[1] = status
+        console.table(args);
     }
     else
         console.log(args);
