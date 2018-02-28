@@ -13,10 +13,10 @@ ipc.on("message-client", (event, arg) =>
     console.debug(message);
 });
 
-document.getElementById("testbtn").addEventListener("click", () => ipc.send("message-host", "getcontext"));
+/*document.getElementById("testbtn").addEventListener("click", () => ipc.send("message-host", "getcontext"));
 document.getElementById("cleanbtn").addEventListener("click", () => ipc.send("message-host", "clean"));
 document.getElementById("resetbtn").addEventListener("click", () => ipc.send("message-host", "resetcontext"));
-document.getElementById("verbosebtn").addEventListener("click", () => ipc.send("message-host", "verbose"));
+document.getElementById("verbosebtn").addEventListener("click", () => ipc.send("message-host", "verbose"));*/
 
 function SetActiveContext(context)
 {
@@ -66,8 +66,19 @@ ipc.on("service-status", (event, ...args) =>
 {
     if(args.length !== undefined && args.length == 2)
     {
-        // args[0] = owncloud, args[1] = status
-        console.table(args);
+        // args[0] = owncloud, args[1] = true/false
+        // args[0] = pclient, args[1] = true/false
+        console.log(args[0], args[1]);
+
+        let status = null;
+
+        if(args[0] == "owncloud")
+            status = document.getElementById("oc-status-led");
+        else if(args[0] == "pclient")
+            status = document.getElementById("ulc-status-led");
+
+        status.classList.remove("led-green", "led-red");
+        status.classList.add(args[1] ? "led-green" : "led-red");
     }
     else
         console.log(args);

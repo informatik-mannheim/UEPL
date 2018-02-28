@@ -26,22 +26,22 @@
           <form>
             <div class="input-group">
               <input type="text" class="form-control" disabled aria-describedby="owncloud-status" value="OwnCloud Service">
-              <span class="input-group-addon" id="owncloud-status"><div class="led-green"></div></span>
+              <span class="input-group-addon" id="owncloud-status"><div id="oc-status-led" class="led-green"></div></span>
             </div>
             <div class="input-group">
               <input type="text" class="form-control" disabled aria-describedby="ulc-status" value="ULC Service">
-              <span class="input-group-addon" id="ulc-status"><div class="led-red"></div></span>
+              <span class="input-group-addon" id="ulc-status"><div id="ulc-status-led" class="led-red"></div></span>
             </div>
         </div>
       </section>
       
       <section id="contexts">
         <div class="page-header row">
-          <h1>Contexts</h1>
+          <h1>Learning Environments</h1>
         </div>
         <div id="elements" class="row" style="overflow-y:auto"></div>
       </section>
-      <div class="page-header row">
+      <!--<div class="page-header row">
         <h1>Debug Tools</h1>
       </div>
       <div class="row">
@@ -50,7 +50,7 @@
         <button type="button" id="resetbtn" class="btn btn-default">Reset Context</button>
         <button type="button" id="verbosebtn" class="btn btn-default">Toggle Verbose</button>
       </div>
-    </div>
+    </div>-->
 
     <script>
     	require("./mainWin");

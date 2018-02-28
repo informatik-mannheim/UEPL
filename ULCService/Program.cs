@@ -193,6 +193,7 @@ namespace ProjectClient
                     {
                         ExecuteScriptFileForCommand(ContextCommand.Download).Wait();
                         actualCommand = ContextCommand.Install;
+                        SendProgressEvent(ProgressEvent.Begin, context);
                     }
 
                     ExecuteScriptFileForCommand(actualCommand).Wait();

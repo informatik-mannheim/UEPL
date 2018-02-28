@@ -60,15 +60,21 @@ ipc.on("message-host", (event, arg) =>
         client.removeAllListeners("connect");
         client.connect(10050, "127.0.0.1", () => { client.connected = true; client.write(arg); });
     }
-
-    // event.sender.send("message-client", "Got Message: " + arg); // debug!
 });
 
 ipc.on("check-services", (event, arg) => 
 {
-    console.log("got service request");
-    checkServiceStatus("owncloud.exe").then(result => { event.sender.send("service-status", "owncloud", result); }).catch(err => console.log(err));
-    checkServiceStatus("dotnet.exe").then(result => { event.sender.send("service-status", "pclient", result); }).catch(err => console.log(err));
+    let ocService = "owncloud";
+    let ulcService = "dotnet";
+
+    if(process.platform == "win32")
+    {
+        ocService += ".exe";
+        ulcService += ".exe";
+    }
+
+    checkServiceStatus(ocService).then(result => {event.sender.send("service-status", "owncloud", result); });
+    checkServiceStatus(ulcService).then(result => { event.sender.send("service-status", "pclient", result); });
 });
 
 function checkServiceStatus(name)
@@ -100,7 +106,7 @@ function checkServiceStatus(name)
 function createMainWindow()
 {
     win = new BrowserWindow({width: 800, height: 600, show: true});
-    win.webContents.openDevTools({ mode: "undocked" });
+    //win.webContents.openDevTools({ mode: "undocked" });
 
     let loadUri = url.format({ 
         pathname: path.join(__dirname, "login.html"),

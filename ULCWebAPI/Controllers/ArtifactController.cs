@@ -185,7 +185,7 @@ namespace ULCWebAPI.Controllers
         
             var artifact = _context.GetFullTable<Artifact>().Single(ar => ar.ID == id);
 
-            if (artifact.Version > version)
+            if (version != 0 && artifact.Version > version)
             {
                 var artifactBackup = artifact.Backups.SingleOrDefault(ab => ab.Version == version);
                 var data = new { Artifact = artifact.ID, Files = new List<ArtifactStorageResponse>(), _self = this.FullURL(nameof(ListFiles), new { id, version }) };
