@@ -239,7 +239,7 @@ namespace ULCWebAPI.Controllers
             var artifact = _context.GetFullTable<Artifact>().Single(ar => ar.ID == id);
             string filePath = string.Empty;
 
-            if (artifact.Version > version)
+            if (version != 0 && artifact.Version > version)
             {
                 var backup = artifact.Backups.SingleOrDefault(abi => abi.Version == version);
                 var backupFileName = $"{filename}.v{backup.Version}";
