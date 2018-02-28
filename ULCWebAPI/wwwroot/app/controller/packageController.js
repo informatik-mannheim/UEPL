@@ -41,13 +41,14 @@
         let nPackage = new Package;
         nPackage.name = package.name;
         nPackage.artifactRefID = package.artifactRefID.id;
+        nPackage.image = package.image;
 
         nPackage.$save((pack, response) => { $scope.refresh(); });
     };
 
     $scope.remove = (package) =>
     {
-        Package.delete({ id: package.id }, refresh);
+        Package.delete({ id: package.id }, $scope.refresh);
     };
 
     $scope.refresh();

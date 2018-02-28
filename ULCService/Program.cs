@@ -51,6 +51,7 @@ namespace ProjectClient
 
         static ProcessStartInfo processInfo;
         static RSA rsa;
+
         volatile static ContextCommand actualCommand = ContextCommand.NONE;
 
         static Program()
@@ -98,7 +99,6 @@ namespace ProjectClient
             tcpListener = new TcpListener(IPAddress.Any, ipcPort);
             tcpListener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
             tcpListener.Start(1);
-            //new Thread(new ThreadStart(AcceptAndHandleClients)).Start(); // Handle Incoming Connections & Commands
             return Task.Run((Action)AcceptAndHandleClients);
         }
 
@@ -164,12 +164,9 @@ namespace ProjectClient
                 if (!started || actualCommand == ContextCommand.NONE)
                 {
                     Log("Wait...");
-
                     commandReceivedEvent.Wait();
                     commandReceivedEvent.Reset();
-
                     Log("Unwait...");
-
                     continue;
                 }
                 else if(actualCommand != ContextCommand.NONE)
@@ -232,7 +229,6 @@ namespace ProjectClient
             try
             {
                 var res = await restClient.ExecuteAsync(restRequest);
-                byte[] signature = new byte[256];
                 var script = res.Content;
 
                 Log($"GET Response => {res.StatusCode} ({(int)res.StatusCode})");
@@ -243,18 +239,16 @@ namespace ProjectClient
                     return;
                 }
 
-                if(enableSignatureService)
+                // Signature verification
+                if(enableSignatureService && !VerifySignature(res))
                 {
-                    var verified = VerifySignature(res);
-
-                    if (!verified)
-                    {
-                        tries = 5;
-                        Log($"Script file are not properly signed by the server!");
-                        return;
-                    }
+                    tries = 5;
+                    Log($"Script file are not properly signed by the server!");
+                    return;
                 }
 
+                // Check if the content matches the updated script file
+                // Content != FileContent => WriteScriptFile
                 if (!File.Exists(commandFilePath) || !File.ReadAllText(commandFilePath).Contains(script))
                 {
                     WriteScriptFile(commandFilePath, script);
@@ -342,13 +336,14 @@ namespace ProjectClient
                         throw new System.Security.SecurityException("No signature data found!");
 
                     signature = Convert.FromBase64String(sig);
+
+                    break;
                 }
             }
 
             if (signature == null)
                 return false;
 
-            //var data = Encoding.UTF8.GetBytes(res.Content);
             var data = res.RawBytes;
             var verified = rsa.VerifyData(data, signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             return verified;

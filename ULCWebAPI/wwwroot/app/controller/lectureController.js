@@ -26,7 +26,7 @@ app.controller("lectureController", ($scope, $resource, $location, $routeParams,
     };
 });
 
-app.controller("lectureDetailController", ($scope, $http, $routeParams, $q, Lecture, Package, Config, ngToast) =>
+app.controller("lectureDetailController", ($scope, $http, $routeParams, $q, $window, $location, Lecture, Package, Config, ngToast) =>
 {
     $scope.lecture =
     {

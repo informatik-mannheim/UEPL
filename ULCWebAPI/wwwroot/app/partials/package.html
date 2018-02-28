@@ -48,6 +48,10 @@
                         <input ng-model="nPackage.name" class="form-control" type="text" placeholder="Package Name" required />
                     </div>
                     <div class="input-group">
+                        <span class="input-group-addon"><i class="glyphicon glyphicon-picture"></i></span>
+                        <input ng-model="nPackage.image" class="form-control" type="text" placeholder="URL or Path to an image..." />
+                    </div>
+                    <div class="input-group">
                         <span class="input-group-addon"><i class="glyphicon glyphicon-arrow-right"></i></span>
                         <select class="form-control" ng-model="nPackage.artifactRefID" ng-options="artifact as artifact.id for artifact in artifacts">
                             <option value="" disabled>-- choose artifact --</option>

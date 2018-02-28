@@ -185,7 +185,7 @@ namespace ULCWebAPI.Controllers
 
         private async Task<string> generateResponse(string id, ResolveType resolveType)
         {
-            var lectureItem = await _context.Lectures.Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
+            var lectureItem = await _context.Lectures.Include(l => l.StorageItems).Include(l => l.Contents).ThenInclude(p => p.Dependencies).SingleOrDefaultAsync((item) => item.ID == id);
             var packageListResolved = new List<int>();
             var packageInstallCommands = new List<string>();
 
@@ -199,6 +199,15 @@ namespace ULCWebAPI.Controllers
 
                 packageListResolved.Add(package.ID);
                 packageInstallCommands.AddRange(resolve(package, resolveType));
+            }
+
+            if(resolveType == ResolveType.Download)
+            {
+                lectureItem.StorageItems?.ForEach(lsi =>
+                {
+                    var url = $"{Request.Scheme}://{Request.Host}/api/lecture/{lectureItem.ID}/file/{lsi.Filename}";
+                    packageInstallCommands.Add(DownloadScript.Replace("$!URL!$", url));
+                });
             }
 
             return string.Join(" && ", packageInstallCommands);

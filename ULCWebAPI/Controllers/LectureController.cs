@@ -257,7 +257,13 @@ namespace ULCWebAPI.Controllers
                 return NotFound(id);
 
             var lecture = _context.GetFullTable<Lecture>().Where(li => li.ID == id).Single();
-            return Json(lecture.StorageItems);
+            
+            foreach(var item in lecture.StorageItems)
+            {
+                item.Url = this.FullURL(nameof(DownloadFile), new { id, filename = item.Filename });
+            }
+
+            return Ok(lecture.StorageItems);
         }
 
         /// <summary>

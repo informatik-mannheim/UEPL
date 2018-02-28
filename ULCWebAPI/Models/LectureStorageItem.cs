@@ -16,5 +16,10 @@ namespace ULCWebAPI.Models
         /// </summary>
         [JsonIgnore]
         public Lecture LectureRef { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string Url { get; set; } = string.Empty;
     }
 }

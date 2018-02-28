@@ -17,18 +17,18 @@ namespace ULCWebAPI.Models
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Package> Contents { get; set; } = new List<Package>();
+        public List<Package> Contents { get; set; } = new List<Package>();
 
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<LectureStorageItem> StorageItems { get; set; } = new List<LectureStorageItem>();
+        public List<LectureStorageItem> StorageItems { get; set; } = new List<LectureStorageItem>();
 
         /// <summary>
         /// 
         /// </summary>
         [JsonIgnore]
-        public ICollection<UserLecture> UserLectures { get; internal set; } = new List<UserLecture>();
+        public List<UserLecture> UserLectures { get; internal set; } = new List<UserLecture>();
 
     }
 }

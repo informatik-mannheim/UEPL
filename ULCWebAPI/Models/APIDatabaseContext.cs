@@ -101,6 +101,7 @@ namespace ULCWebAPI.Models
             // 1:n binding Lecture : LectureStorageItem
             modelBuilder.Entity<Lecture>().HasMany(a => a.StorageItems).WithOne(asi => asi.LectureRef).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<LectureStorageItem>().HasOne(asi => asi.LectureRef).WithMany(a => a.StorageItems).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<LectureStorageItem>().Ignore(lsi => lsi.Url);
 
             // 1:1 binding LoginToken : User
             modelBuilder.Entity<LoginToken>().HasOne(lt => lt.User);
