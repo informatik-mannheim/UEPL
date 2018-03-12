@@ -122,7 +122,7 @@ namespace ProjectClient
             {
                 string metadataFile = Path.Combine(repo, "meta");
                 if (File.Exists(metadataFile))
-                    contexts.Add(Context.Parse(File.ReadAllText(metadataFile)));
+                    contexts.Add(Context.Load(metadataFile));
                 else
                     contexts.Add(new Context(id: Path.GetFileName(repo)));
             }
@@ -432,6 +432,8 @@ namespace ProjectClient
                 default:
                     break;
             }
+
+            contextInCollection.Save(Path.Combine(recipeRepository, contextInCollection.ID, "meta"));
         }
 
         internal static void UpdateClient()
