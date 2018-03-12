@@ -18,10 +18,10 @@
       body {
         background-color: #eee;
         margin: 0;
-        zoom: 1.7;
       }
       
       .form-signin {
+        zoom: 1.7;
         max-width: 330px;
         padding: 15px;
         margin: 0 auto;
@@ -59,15 +59,15 @@
       </style>
   </head>
   <body>
-    <div class="container" ng-controller="loginController">
-      <form ng-submit class="form-signin text-center">
+    <div class="container">
+      <form class="form-signin text-center">
         <h2 class="form-signin-heading">Please sign in</h2>
         <label for="inputName" class="sr-only">User Name</label>
         <input type="text" id="inputName" class="form-control" autocomplete="username" placeholder="Username" required autofocus>
         <label for="inputPassword" class="sr-only">Password</label>
         <input type="password" id="inputPassword" class="form-control" autocomplete="current-password" placeholder="Password" required>
-        <input id ="login" type="button" class="btn btn-lg btn-primary btn-block" ng-disabled="loginButtonDisabled" ng-click="login()" value="Sign in" />
-       </form>
+        <input id ="login" type="button" class="btn btn-lg btn-primary btn-block" value="Sign in" />
+      </form>
     </div>
     <div id="loader-container" class="hide">
       <div id="loader"></div>
@@ -76,47 +76,6 @@
 
     <script>
         require("./loginWin");
-        $.when($.ready).then(() => 
-        {
-          $.ajaxSetup({ contentType: "application/json; charset=utf-8"});
-
-          $("#login").on("click", () => 
-          {
-            $("#login").prop("disabled", true);
-
-            let name = $("#inputName").val();
-            let pass = $("#inputPassword").val();
-            console.log(name);
-            console.log(pass);
-
-            $.post("http://localhost:10000/api/account/login", 
-                   JSON.stringify({ "name": name, "password": pass})
-            )
-            .done(data => 
-            {
-              localStorage.setItem("Token", data.token);
-              localStorage.setItem("User", JSON.stringify(data.user));
-              localStorage.setItem("Valid", data.valid);
-              console.log(data);
-              window.location = "index.html";
-            })
-            .fail(error => 
-            {
-              $.toast({ 
-                text: error.responseJSON,
-                heading: "Login Error",
-                icon: "error",
-                showHideTransition: "slide",
-                hideAfter: false,
-                stack: false,
-                position: "bottom-center"
-              });
-
-              $("#login").prop("disabled", false); // reenable login button
-            });
-
-          });
-        });
     </script>
   </body>
 </html>

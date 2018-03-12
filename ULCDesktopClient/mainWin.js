@@ -1,10 +1,58 @@
 const ipc = require("electron").ipcRenderer;
+const loadJson = require("load-json-file");
+
 let interval;
 let lectures = [];
 let dirty = false;
 let activeContext = "";
 let contexts = [];
 let panelButtonContainers = [];
+let updateData = () => {};
+
+let config = {};
+loadJson("config.json").then(json => 
+{ 
+    config = json; 
+
+    if(config.debugmode)
+    {
+    /*document.getElementById("testbtn").addEventListener("click", () => ipc.send("message-host", "getcontext"));
+    document.getElementById("cleanbtn").addEventListener("click", () => ipc.send("message-host", "clean"));
+    document.getElementById("resetbtn").addEventListener("click", () => ipc.send("message-host", "resetcontext"));
+    document.getElementById("verbosebtn").addEventListener("click", () => ipc.send("message-host", "verbose"));*/
+    }
+
+    updateData = () => 
+    {
+        console.debug("Checking for new lectures...");
+        fetch(config.serverUrl + "/api/lecture").then(response => 
+        {
+            if(response.ok)
+                return response.json();
+            else
+                return null;
+        }).then(data => 
+        {
+            if(data === null)
+                return;
+            
+            for(var i = 0; i < data.length; i++)
+            {
+                if(!lectures.some(elem => elem.id == data[i].id))
+                {
+                    lectures.push(data[i]);
+                    dirty = true;
+                } 
+            }
+
+            if(dirty)
+                update();
+
+        }).catch(err => { console.error(err); });
+    };
+
+    updateData();    
+});
 
 ipc.on("message-client", (event, arg) => 
 {
@@ -12,11 +60,6 @@ ipc.on("message-client", (event, arg) =>
     //document.getElementById("message").innerHTML = message;
     console.debug(message);
 });
-
-/*document.getElementById("testbtn").addEventListener("click", () => ipc.send("message-host", "getcontext"));
-document.getElementById("cleanbtn").addEventListener("click", () => ipc.send("message-host", "clean"));
-document.getElementById("resetbtn").addEventListener("click", () => ipc.send("message-host", "resetcontext"));
-document.getElementById("verbosebtn").addEventListener("click", () => ipc.send("message-host", "verbose"));*/
 
 function SetActiveContext(context)
 {
@@ -186,39 +229,9 @@ let update = () =>
     dirty = false;
 };
 
-let updateData = () => 
-{
-    console.debug("Checking for new lectures...");
-    //fetch("http://elke.sr.hs-mannheim.de:10000/api/lecture").then(response => 
-    fetch("http://localhost:10000/api/lecture").then(response => 
-    {
-        if(response.ok)
-            return response.json();
-        else
-            return null;
-    }).then(data => 
-    {
-        if(data === null)
-            return;
-        
-        for(var i = 0; i < data.length; i++)
-        {
-            if(!lectures.some(elem => elem.id == data[i].id))
-            {
-                lectures.push(data[i]);
-                dirty = true;
-            } 
-        }
-
-        if(dirty)
-            update();
-
-    }).catch(err => { console.error(err); });
-};
-
 // get updated lectures
 interval = window.setInterval(updateData, 30000);
-updateData();
+
 ipc.send("message-host", "getcontext");
 ipc.send("check-services");
 

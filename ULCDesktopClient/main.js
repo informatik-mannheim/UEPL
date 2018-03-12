@@ -7,6 +7,10 @@ const path = require("path");
 const net = require("net");
 const ps = require("./lib/ps-node");
 
+const loadJson = require("load-json-file");
+let config = {};
+loadJson("config.json").then(json => { config = json; });
+
 let win;
 let sockData = "";
 let winIPCSender = null;
@@ -58,7 +62,7 @@ ipc.on("message-host", (event, arg) =>
     else
     {
         client.removeAllListeners("connect");
-        client.connect(10050, "127.0.0.1", () => { client.connected = true; client.write(arg); });
+        client.connect(config.servicePort || 10050, config.serviceIP || "127.0.0.1", () => { client.connected = true; client.write(arg); });
     }
 });
 
@@ -106,11 +110,10 @@ function checkServiceStatus(name)
 function createMainWindow()
 {
     win = new BrowserWindow({width: 800, height: 600, show: true});
-    //win.webContents.openDevTools({ mode: "undocked" });
+    win.webContents.openDevTools({ mode: "undocked" });
 
     let loadUri = url.format({ 
         pathname: path.join(__dirname, "login.html"),
-        //pathname: path.join(__dirname, "index.html"),
         protocol: 'file:',
         slashes: true
     });
@@ -127,7 +130,7 @@ app.on("ready", () =>
     createMainWindow();
     console.timeEnd("window");
     
-    client.connect(10050, "127.0.0.1", () => client.connected = true);
+    client.connect(config.servicePort || 10050, config.serviceIP || "127.0.0.1", () => client.connected = true);
 });
 
 app.on("window-all-closed", () => 

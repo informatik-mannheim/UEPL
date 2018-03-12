@@ -1,0 +1,6 @@
+{
+    "serverUrl": "http://193.197.89.120:8080",
+    "serviceIP": "127.0.0.1",
+    "servicePort": 10050,
+    "debugmode": false
+}
