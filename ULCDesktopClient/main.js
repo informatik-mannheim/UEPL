@@ -8,8 +8,9 @@ const net = require("net");
 const ps = require("./lib/ps-node");
 
 const loadJson = require("load-json-file");
+const basePath = app.getAppPath();
 let config = {};
-loadJson("config.json").then(json => { config = json; });
+loadJson(path.join(basePath, "config.json")).then(json => { config = json; });
 
 let win;
 let sockData = "";
@@ -78,7 +79,13 @@ ipc.on("check-services", (event, arg) =>
     }
 
     checkServiceStatus(ocService).then(result => {event.sender.send("service-status", "owncloud", result); });
-    checkServiceStatus(ulcService).then(result => { event.sender.send("service-status", "pclient", result); });
+    //checkServiceStatus(ulcService).then(result => { event.sender.send("service-status", "pclient", result); });
+    event.sender.send("service-status", "pclient", client.connected);
+});
+
+ipc.on("get-config", (event, arg) =>
+{
+    event.sender.send("config", config);
 });
 
 function checkServiceStatus(name)
@@ -105,12 +112,10 @@ function checkServiceStatus(name)
     return p;
 }
 
-
-
 function createMainWindow()
 {
     win = new BrowserWindow({width: 800, height: 600, show: true});
-    win.webContents.openDevTools({ mode: "undocked" });
+    //win.webContents.openDevTools({ mode: "undocked" });
 
     let loadUri = url.format({ 
         pathname: path.join(__dirname, "login.html"),

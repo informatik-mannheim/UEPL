@@ -7,7 +7,7 @@
     "start": "electron .",
     "build": "electron-packager . --all",
     "restore": "bower install",
-    "build-linux-64": "electron-packager . app --platform linux --arch x64 --out dist/",
+    "build-linux-64": "electron-packager . ulcdesktop --platform linux --arch x64 --out dist/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "build": {

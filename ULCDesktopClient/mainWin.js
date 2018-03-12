@@ -8,18 +8,18 @@ let activeContext = "";
 let contexts = [];
 let panelButtonContainers = [];
 let updateData = () => {};
-
 let config = {};
-loadJson("config.json").then(json => 
+
+ipc.on("config", (sender, json) => 
 { 
     config = json; 
 
     if(config.debugmode)
     {
-    /*document.getElementById("testbtn").addEventListener("click", () => ipc.send("message-host", "getcontext"));
-    document.getElementById("cleanbtn").addEventListener("click", () => ipc.send("message-host", "clean"));
-    document.getElementById("resetbtn").addEventListener("click", () => ipc.send("message-host", "resetcontext"));
-    document.getElementById("verbosebtn").addEventListener("click", () => ipc.send("message-host", "verbose"));*/
+        document.getElementById("testbtn").addEventListener("click", () => ipc.send("message-host", "getcontext"));
+        document.getElementById("cleanbtn").addEventListener("click", () => ipc.send("message-host", "clean"));
+        document.getElementById("resetbtn").addEventListener("click", () => ipc.send("message-host", "resetcontext"));
+        document.getElementById("verbosebtn").addEventListener("click", () => ipc.send("message-host", "verbose"));
     }
 
     updateData = () => 
@@ -51,13 +51,13 @@ loadJson("config.json").then(json =>
         }).catch(err => { console.error(err); });
     };
 
-    updateData();    
+    updateData();
+    interval = window.setInterval(updateData, 30000);    
 });
 
 ipc.on("message-client", (event, arg) => 
 {
     const message = `Message from main: ${arg}`;
-    //document.getElementById("message").innerHTML = message;
     console.debug(message);
 });
 
@@ -75,6 +75,40 @@ function SetActiveContext(context)
                 pbc.Active = false;
         });
     }
+}
+
+function update() 
+{
+    panelButtonContainers = [];
+
+    let lectureContainer = document.getElementById("elements");
+    lectureContainer.innerHTML = "";
+
+    lectures.forEach(lec => 
+    {
+        let obj = new PanelButtonContainer(lec, (event) => {
+            let txt = event.target.textContent;
+            let cmd = "";
+
+            if(txt === "Change Context")
+                cmd = "acontext";
+            else if(txt === "Download & Install")
+                cmd = "icontext";
+            else if(txt === "Remove")
+                cmd = "rcontext";
+            else if(txt === "Deactivate")
+                cmd ="ucontext";
+            else
+                return;
+
+            ipc.send("message-host", `${cmd}|${lec.id}`);
+        });
+        panelButtonContainers.push(obj);
+        lectureContainer.appendChild(obj.DOM);    
+    });
+
+    ipc.send("message-host", "getcontextdata");
+    dirty = false;
 }
 
 ipc.on("active-context", (event, arg) => 
@@ -195,43 +229,7 @@ ipc.on("all-context-data", (event, arg) =>
 
 });
 
-let update = () => 
-{
-    panelButtonContainers = [];
-
-    let lectureContainer = document.getElementById("elements");
-    lectureContainer.innerHTML = "";
-
-    lectures.forEach(lec => 
-    {
-        let obj = new PanelButtonContainer(lec, (event) => {
-            let txt = event.target.textContent;
-            let cmd = "";
-
-            if(txt === "Change Context")
-                cmd = "acontext";
-            else if(txt === "Download & Install")
-                cmd = "icontext";
-            else if(txt === "Remove")
-                cmd = "rcontext";
-            else if(txt === "Deactivate")
-                cmd ="ucontext";
-            else
-                return;
-
-            ipc.send("message-host", `${cmd}|${lec.id}`);
-        });
-        panelButtonContainers.push(obj);
-        lectureContainer.appendChild(obj.DOM);    
-    });
-
-    ipc.send("message-host", "getcontextdata");
-    dirty = false;
-};
-
-// get updated lectures
-interval = window.setInterval(updateData, 30000);
-
+ipc.send("get-config");
 ipc.send("message-host", "getcontext");
 ipc.send("check-services");
 
