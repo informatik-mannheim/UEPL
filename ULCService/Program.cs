@@ -133,6 +133,10 @@ namespace ProjectClient
             config.ReadConfig(); 
 
             activeContext = context = config[nameof(activeContext)];
+
+	    if(activeContext == string.Empty)
+		activeContext = context = "NONE";
+
             bool.TryParse(config[nameof(verbose)], out verbose);
             protocol = config[nameof(protocol)];
             host = config[nameof(host)];
@@ -380,6 +384,8 @@ namespace ProjectClient
 
             if (!sent)
                 Log($"Status {evt} was NOT sent over tcp socket...");
+	    else
+		Log($"Status {evt} sent to client...");
 
             return sent;
         }
@@ -427,6 +433,7 @@ namespace ProjectClient
                     break;
                 case ContextCommand.Remove:
                     contextInCollection.Installed = false;
+		    contextInCollection.Downloaded = false;
                     tcpClient.SendChannelMessage("set-context-state", $"removed:{context}");
                     break;
                 default:
