@@ -41,9 +41,10 @@
     };
 });
 
-app.controller("artifactDetailController", ($scope, $resource, $routeParams, $http, $window, $location, Artifact, Config, ngToast) =>
+app.controller("artifactDetailController", ($scope, $resource, $q, $routeParams, $http, $window, $location, Artifact, Config, ngToast) =>
 {
     let saveButton = document.getElementById("save");
+    let uploadButton = document.getElementById("upload");
     saveButton.disabled = true;
 
     let refreshFiles = () =>
@@ -81,10 +82,14 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
         let fileUpload = $("#files").get(0);
         let files = fileUpload.files;
 
+        uploadButton.disabled = true;
+    
         let data = new FormData();
 
         for (let i = 0; i < files.length; i++) 
             data.append(files[i].name, files[i]);
+
+        var defer = $q.defer();
 
         $http(
         {
@@ -92,8 +97,13 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
             url: Config.API + "artifact/" + $scope.artifact.id + "/file",
             transformRequest: angular.identity,
             headers: { "Content-Type": undefined },
-            data: data
-        }).then(
+            data: data,
+            uploadEventHandlers: { progress: function(e) {
+                defer.notify(e.loaded * 100 / e.total);
+            }}
+        }).then(defer.resolve.bind(defer), defer.reject.bind(defer));
+
+        defer.promise.then(
         response =>
         {
             ngToast.create({
@@ -102,6 +112,8 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
                 dismissButton: true
             });
 
+            refreshFiles();
+            uploadButton.disabled = false;
         }, 
         error =>
         {
@@ -123,6 +135,10 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
                     dismissButton: true
                 });
             }
+        },
+        progress =>
+        {
+            console.log(progress);
         });
     };
 
@@ -149,12 +165,20 @@ app.controller("artifactDetailController", ($scope, $resource, $routeParams, $ht
         $scope.artifact.removeAction = editors.ra.getValue();
         $scope.artifact.switchAction = editors.sa.getValue();
         $scope.artifact.unswitchAction = editors.ua.getValue();
+        $scope.artifact.storageFile = null; // avoid validation errors
 
         $scope.artifact.$update(res =>
         {
             ngToast.create({
                 className: "info notification",
                 content: "Scripts updated!",
+                dismissButton: true
+            });
+        }, error =>
+        {
+            ngToast.create({
+                className: "danger notification",
+                content: "Script Update Error: " + error.statusText,
                 dismissButton: true
             });
         });
